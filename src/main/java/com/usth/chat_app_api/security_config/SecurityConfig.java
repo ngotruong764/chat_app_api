@@ -1,0 +1,17 @@
+package com.usth.chat_app_api.security_config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception{
+        // disable form login
+        http.formLogin(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+}
