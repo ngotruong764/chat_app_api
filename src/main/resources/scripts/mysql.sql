@@ -8,9 +8,9 @@ CREATE TABLE user_login(
                            token_create_at TIMESTAMP,
                            refresh_token VARCHAR(1000),
                            refresh_token_at TIMESTAMP,
-                           is_active BOOL,
-                           is_reported BOOL,
-                           is_blocked BOOL,
+                           is_active BOOL DEFAULT FALSE,
+                           is_reported BOOL DEFAULT FALSE,
+                           is_blocked BOOL DEFAULT FALSE,
                            created_at TIMESTAMP,
                            updated_at TIMESTAMP,
                            PRIMARY KEY (id)

@@ -20,7 +20,7 @@ public class UserInfo {
     @Column(name = "user_name")
     private String username;
     @Column(name = "phone_number")
-    private Timestamp phoneNumber;
+    private String phoneNumber;
     @Column(name = "sex")
     private Boolean sex;
     @Column(name = "status")
@@ -74,11 +74,11 @@ public class UserInfo {
         this.username = username;
     }
 
-    public Timestamp getPhoneNumber() {
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(Timestamp phoneNumber) {
+    public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 

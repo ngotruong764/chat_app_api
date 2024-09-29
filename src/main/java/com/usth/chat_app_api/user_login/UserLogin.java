@@ -1,12 +1,13 @@
 package com.usth.chat_app_api.user_login;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.sql.Timestamp;
 
 @Table(name = "user_login")
 @Entity
-public class UserLogin {
+public class UserLogin{
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
