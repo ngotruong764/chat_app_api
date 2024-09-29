@@ -30,16 +30,20 @@ public class Conversation {
 
     @OneToMany(mappedBy = "conversation")
     private List<ConversationParticipant> participants;
-    @OneToMany(mappedBy = "conversation")
+    @OneToMany(mappedBy = "conversation",cascade = CascadeType.REMOVE)
     private List<Message> messages;
+
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;  // Default to true
 
     public Conversation() {}
 
-    public Conversation(UserInfo creator, String name, Boolean isGroup, LocalDateTime createdAt) {
+    public Conversation(UserInfo creator, String name, Boolean isGroup, LocalDateTime createdAt, Boolean isActive) {
         this.creator = creator;
         this.name = name;
         this.isGroup = isGroup;
         this.createdAt = createdAt;
+        this.isActive = isActive;
     }
 
     public Long getId() {
@@ -88,5 +92,21 @@ public class Conversation {
 
     public void setParticipants(List<ConversationParticipant> participants) {
         this.participants = participants;
+    }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
     }
 }

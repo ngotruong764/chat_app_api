@@ -65,4 +65,12 @@ public class MessageRecipient {
     public void setIsRead(Boolean isRead) {
         this.isRead = isRead;
     }
+
+    public Boolean getRead() {
+        return isRead;
+    }
+
+    public void setRead(Boolean read) {
+        isRead = read;
+    }
 }

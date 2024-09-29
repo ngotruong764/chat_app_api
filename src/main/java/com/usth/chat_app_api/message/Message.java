@@ -17,7 +17,7 @@ public class Message {
     @ManyToOne
     @JoinColumn(name = "creator_id", nullable = false)
     private UserInfo creatorId;
-    @Column(name = "content",nullable = false)
+    @Column(name = "content",nullable = false,columnDefinition = "TEXT")
     private String content;
     @Column(name = "created_at",nullable = false)
     private LocalDateTime createdAt;
@@ -86,5 +86,13 @@ public class Message {
 
     public void setRecipients(List<MessageRecipient> recipients) {
         this.recipients = recipients;
+    }
+
+    public Conversation getConversation() {
+        return conversation;
+    }
+
+    public void setConversation(Conversation conversation) {
+        this.conversation = conversation;
     }
 }

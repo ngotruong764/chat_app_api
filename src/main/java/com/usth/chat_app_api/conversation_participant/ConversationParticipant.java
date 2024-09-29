@@ -59,4 +59,5 @@ public class ConversationParticipant {
     public void setJoinedAt(LocalDateTime joinedAt) {
         this.joinedAt = joinedAt;
     }
+
 }
