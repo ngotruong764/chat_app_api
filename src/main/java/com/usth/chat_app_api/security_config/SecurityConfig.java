@@ -43,7 +43,8 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable);
 //        http.authenticationProvider(authenticationProvider);
         //
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//        huy mới tắt tạm cái jwt để test endpoint
+//        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -73,8 +74,9 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOrigins(List.of("http://localhost:8081"));
+//        configuration.setAllowedOrigins(List.of("http://localhost:8081"));
+//        huy mới theem dòng dưới ể test
+        configuration.setAllowedOrigins(List.of("http://localhost:8080"));
         configuration.setAllowedMethods(List.of("GET","POST"));
         configuration.setAllowedHeaders(List.of("Authorization","Content-Type"));
 

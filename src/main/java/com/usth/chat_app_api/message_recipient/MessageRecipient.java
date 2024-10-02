@@ -9,17 +9,17 @@ import jakarta.persistence.*;
 public class MessageRecipient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id", nullable = true, updatable = false)
     private Long id;
 
     // Liên kết với bảng UserInfo để xác định người nhận tin nhắn
     @ManyToOne
-    @JoinColumn(name = "recipient_id", nullable = false)
+    @JoinColumn(name = "recipient_id", nullable = true)
     private UserInfo recipient;
 
     // Liên kết với bảng Message để xác định tin nhắn
     @ManyToOne
-    @JoinColumn(name = "message_id", nullable = false)
+    @JoinColumn(name = "message_id", nullable = true)
     private Message message;
 
     @Column(name = "is_read", nullable = false)
@@ -31,7 +31,12 @@ public class MessageRecipient {
     public MessageRecipient(UserInfo recipient, Message message, Boolean isRead) {
         this.recipient = recipient;
         this.message = message;
-        this.isRead = isRead;
+    }
+
+    public MessageRecipient(UserInfo recipient, Message message) {
+        this.recipient = recipient;
+        this.message = message;
+        this.isRead = false;
     }
 
     public Long getId() {
