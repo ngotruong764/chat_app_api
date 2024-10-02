@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TalkieUserDetailService implements UserDetailsService {
@@ -19,11 +20,16 @@ public class TalkieUserDetailService implements UserDetailsService {
     private UserLoginRepository repo;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserLogin userLogin = repo.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User detail not found for the user:" + username));
+        boolean isActive = true;
+        Optional<UserLogin> userLogin = repo.findByEmailAndIsActive(username, isActive);
         // Empty authorities
         List<GrantedAuthority> authorities = new ArrayList<>();
-        //
-        return new User(userLogin.getEmail(), userLogin.getPassword(), authorities);
+        if(userLogin.isPresent() ){
+            return new User(userLogin.get().getEmail(), userLogin.get().getPassword(), authorities);
+        } else{
+            UserLogin login = repo.findByLoginNameAndIsActive(username, isActive)
+                    .orElseThrow(() -> new UsernameNotFoundException("User detail not found for the user:" + username));;
+            return new User(login.getLoginName(), login.getPassword(), authorities);
+        }
     }
 }

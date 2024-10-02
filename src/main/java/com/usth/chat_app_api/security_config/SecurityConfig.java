@@ -1,7 +1,5 @@
 package com.usth.chat_app_api.security_config;
 
-import com.usth.chat_app_api.filter.JWTTokenGeneratorFilter;
-import com.usth.chat_app_api.filter.JWTTokenValidatorFilter;
 import com.usth.chat_app_api.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +30,7 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception{
         http.authorizeHttpRequests(request -> {
-            request.anyRequest().permitAll();
+            request.requestMatchers("/api/v1/user-login/**").permitAll();
         });
         // disable csrf
         http.csrf(AbstractHttpConfigurer::disable);

@@ -2,8 +2,8 @@ package com.usth.chat_app_api.api.user_login;
 
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
+import com.usth.chat_app_api.user_login.IUserLoginService;
 import com.usth.chat_app_api.user_login.UserLogin;
-import com.usth.chat_app_api.user_login.UserLoginRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +29,7 @@ public class UserLoginAPI {
     @Autowired
     private JwtService jwtService;
     @Autowired
-    private UserLoginRepository userLoginRepo;
+    private IUserLoginService userLoginService;
     @Autowired
     private JavaMailSender javaMailSender;
     @Autowired
@@ -42,23 +42,26 @@ public class UserLoginAPI {
         try{
             UserLogin registerUser = request.getUserLogin();
             // checking account is already exist or not
-            Optional<UserLogin> userLogin = userLoginRepo.findByEmailAndIsActive(registerUser.getEmail(), true);
-            if(userLogin.isEmpty()){
+            Optional<UserLogin> userLogin = userLoginService.findByEmailAndIsActive(registerUser.getEmail(), true);
+            boolean isLoginNameExisted = userLoginService.findByLoginName(registerUser.getLoginName()).isPresent();
+            //
+            if(isLoginNameExisted){
+                throw new Exception("Login name: "+ registerUser.getLoginName() +"already existed");
+            } else if(userLogin.isEmpty()) {
                 // delete un active account
-                userLoginRepo.deleteByEmail(registerUser.getEmail());
+                userLoginService.deleteByEmail(registerUser.getEmail());
                 // hash and set new hash password
                 String hashPwd = passwordEncoder.encode(registerUser.getPassword());
                 registerUser.setPassword(hashPwd);
                 registerUser.setConfirmationToken(randomToken);
                 //save un-active registration user
-                userLoginRepo.save(registerUser);
+                userLoginService.saveUserLogin(registerUser);
                 // sending email
                 SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 //                simpleMailMessage.setFrom();
                 simpleMailMessage.setTo(registerUser.getEmail());
                 simpleMailMessage.setSubject(emailSubject);
-                simpleMailMessage.setText("To confirm your account, please click here : "
-                        +"http://localhost:8081/talkie/api/v1/user-login/confirm-account?token="+randomToken);
+                simpleMailMessage.setText("Your confirm code is:" + randomToken);
                 javaMailSender.send(simpleMailMessage);
                 // hash and set new hash password
                 response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
@@ -77,17 +80,20 @@ public class UserLoginAPI {
     }
 
     @RequestMapping(value = "/confirm-account", method = {RequestMethod.GET, RequestMethod.POST})
-    public ResponseEntity<UserLoginResponse> confirmAccount(@RequestParam("token")String confirmationToken){
+    public ResponseEntity<UserLoginResponse> confirmAccount(@RequestBody UserLoginRequest confirmationToken){
         UserLoginResponse response = new UserLoginResponse();
         try{
-            Optional<UserLogin> registerUser = userLoginRepo.findByConfirmationToken(confirmationToken);
+            String confirmationCode = confirmationToken.getConfirmationCode();
+            Optional<UserLogin> registerUser = userLoginService.findByConfirmationToken(confirmationCode);
             //
             if(registerUser.isPresent()){
                 // set active
                 registerUser.get().setActive(true);
                 // set create time
                 registerUser.get().setCreatedAt(new Timestamp(System.currentTimeMillis()));
-                userLoginRepo.save(registerUser.get());
+                userLoginService.saveUserLogin(registerUser.get());
+                // delete confirmation code after authenticate
+                userLoginService.deleteConfirmationCode(confirmationCode);
             }
             //
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
@@ -105,17 +111,25 @@ public class UserLoginAPI {
         UserLoginResponse response = new UserLoginResponse();
         try {
             UserLogin userLogin = request.getUserLogin();
-
+            String accountName;
+            if(userLogin.getEmail() != null){
+                accountName = userLogin.getEmail();
+            } else if (userLogin.getLoginName() != null){
+                accountName = userLogin.getLoginName();
+            } else{
+                throw new Exception("Cannot found login name or email!");
+            }
             // authenticate account
             // if the account is not true, exception will be occurred
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            userLogin.getEmail(),
+                            accountName,
                             userLogin.getPassword()
                     )
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwtToken = jwtService.generateToken((UserDetails) authentication.getPrincipal());
+            response.setJwt_token(jwtToken);
             System.out.println(jwtToken);
 
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
@@ -128,4 +142,26 @@ public class UserLoginAPI {
                     .body(response);
         }
     }
+
+    @PostMapping("/get-user-login")
+    public ResponseEntity<UserLoginResponse> getUserLogin(@RequestBody UserLoginRequest request){
+        UserLoginResponse response = new UserLoginResponse();
+        try{
+            UserLogin userLogin = request.getUserLogin();
+            String loginName = userLogin.getLoginName();
+            String email = userLogin.getEmail();
+//            if(){
+//
+//            }
+            response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
+            response.setStatusCode(HttpStatus.OK.value());
+            return ResponseEntity.status(HttpStatus.OK.value()).body(response);
+        } catch (Exception e){
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
+                    .body(response);
+        }
+    }
+
 }
