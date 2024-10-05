@@ -1,8 +1,8 @@
-package com.usth.chat_app_api.api.user_login;
+package com.usth.chat_app_api.api.user_info;
 
 import com.usth.chat_app_api.core.base.ResponseBase;
 
-public class UserLoginResponse extends ResponseBase {
+public class UserInfoResponse extends ResponseBase {
     private String jwt_token;
 
     public String getJwt_token() {

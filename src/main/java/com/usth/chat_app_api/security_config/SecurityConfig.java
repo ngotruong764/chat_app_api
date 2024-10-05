@@ -30,7 +30,10 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception{
         http.authorizeHttpRequests(request -> {
-            request.requestMatchers("/api/v1/user-login/**").permitAll();
+            request.requestMatchers("/api/v1/user-info/register").permitAll();
+            request.requestMatchers("/api/v1/user-info/confirm-account").permitAll();
+            request.requestMatchers("/api/v1/user-info/login").permitAll();
+//            request.requestMatchers("/*").permitAll();
         });
         // disable csrf
         http.csrf(AbstractHttpConfigurer::disable);
@@ -42,7 +45,7 @@ public class SecurityConfig {
 //        http.authenticationProvider(authenticationProvider);
         //
 //        huy mới tắt tạm cái jwt để test endpoint
-//        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -72,9 +75,9 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(List.of("http://localhost:8081"));
+        configuration.setAllowedOrigins(List.of("http://localhost:8081"));
 //        huy mới theem dòng dưới ể test
-        configuration.setAllowedOrigins(List.of("http://localhost:8080"));
+//        configuration.setAllowedOrigins(List.of("http://localhost:8080"));
         configuration.setAllowedMethods(List.of("GET","POST"));
         configuration.setAllowedHeaders(List.of("Authorization","Content-Type"));
 
