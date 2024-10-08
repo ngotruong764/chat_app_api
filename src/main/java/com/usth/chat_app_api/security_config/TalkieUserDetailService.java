@@ -1,7 +1,7 @@
 package com.usth.chat_app_api.security_config;
 
-import com.usth.chat_app_api.user_login.UserLogin;
-import com.usth.chat_app_api.user_login.UserLoginRepository;
+import com.usth.chat_app_api.user_info.UserInfo;
+import com.usth.chat_app_api.user_info.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -17,19 +17,19 @@ import java.util.Optional;
 @Service
 public class TalkieUserDetailService implements UserDetailsService {
     @Autowired
-    private UserLoginRepository repo;
+    private UserInfoRepository repo;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         boolean isActive = true;
-        Optional<UserLogin> userLogin = repo.findByEmailAndIsActive(username, isActive);
+        Optional<UserInfo> userLogin = repo.findByEmailAndIsActive(username, isActive);
         // Empty authorities
         List<GrantedAuthority> authorities = new ArrayList<>();
         if(userLogin.isPresent() ){
             return new User(userLogin.get().getEmail(), userLogin.get().getPassword(), authorities);
         } else{
-            UserLogin login = repo.findByLoginNameAndIsActive(username, isActive)
+            UserInfo userInfo = repo.findByUsernameAndIsActive(username, isActive)
                     .orElseThrow(() -> new UsernameNotFoundException("User detail not found for the user:" + username));;
-            return new User(login.getLoginName(), login.getPassword(), authorities);
+            return new User(userInfo.getUsername(), userInfo.getPassword(), authorities);
         }
     }
 }
