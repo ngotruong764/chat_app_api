@@ -30,7 +30,8 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception{
         http.authorizeHttpRequests(request -> {
-            request.requestMatchers("/api/v1/user-login/**").permitAll();
+//            request.requestMatchers("/api/v1/user-login/**").permitAll();
+            request.requestMatchers("/*").permitAll();
         });
         // disable csrf
         http.csrf(AbstractHttpConfigurer::disable);
