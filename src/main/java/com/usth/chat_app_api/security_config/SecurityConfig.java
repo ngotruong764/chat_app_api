@@ -30,16 +30,23 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception{
         http.authorizeHttpRequests(request -> {
-//<<<<<<< HEAD
+
 //            request.requestMatchers("/api/v1/user-login/**").permitAll();
-            request.requestMatchers("/*").permitAll();
-//=======
+            request.requestMatchers("/**").permitAll();
+
             request.requestMatchers("/api/v1/user-info/register").permitAll();
             request.requestMatchers("/api/v1/user-info/confirm-account").permitAll();
             request.requestMatchers("/api/v1/user-info/login").permitAll();
 //            request.requestMatchers("/*").permitAll();
-//>>>>>>> 5afd2c5b5caabba5ce3c3efdcbfde67740e84afc
+
+//            request.requestMatchers("/api/v1/user-info/**").permitAll();
+//            request.requestMatchers("/*").permitAll();
+            request.requestMatchers("/api/v1/user-info/register").permitAll();
+            request.requestMatchers("/api/v1/user-info/confirm-account").permitAll();
+            request.requestMatchers("/api/v1/user-info/login").permitAll();
+            request.anyRequest().authenticated();
         });
+
         // disable csrf
         http.csrf(AbstractHttpConfigurer::disable);
         // making application stateless
@@ -80,11 +87,12 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:8081"));
+        configuration.setAllowedOrigins(List.of("http://10.0.2.2:8081", "ws://10.0.2.2:8081/talkie/api/v1/chat","ws://10.0.2.2:8081", "http://localhost:8081"));
 //        huy mới theem dòng dưới ể test
         configuration.setAllowedOrigins(List.of("http://localhost:8080"));
         configuration.setAllowedMethods(List.of("GET","POST"));
-        configuration.setAllowedHeaders(List.of("Authorization","Content-Type"));
+        // allow all header
+        configuration.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 

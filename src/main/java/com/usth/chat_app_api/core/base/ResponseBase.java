@@ -2,7 +2,7 @@ package com.usth.chat_app_api.core.base;
 
 public abstract class ResponseBase {
     private String message;
-    private int statusCode;
+    private int responseCode;
 
     public String getMessage() {
         return message;
@@ -12,11 +12,11 @@ public abstract class ResponseBase {
         this.message = message;
     }
 
-    public int getStatusCode() {
-        return statusCode;
+    public int getResponseCode() {
+        return responseCode;
     }
 
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
+    public void setResponseCode(int responseCode) {
+        this.responseCode = responseCode;
     }
 }

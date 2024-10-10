@@ -1,21 +1,23 @@
 package com.usth.chat_app_api.user_info;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@Transactional
 public class UserInfoServiceImpl implements IUserInfoService {
     @Autowired
     private UserInfoRepository repo;
 
     @Override
-//<<<<<<< HEAD
     public UserInfo findUserInforById(Long id) {
         return repo.findUserInfoById(id);
     }
-//=======
+
+    @Override
     public Optional<UserInfo> findByEmail(String email) {
         return repo.findByEmail(email);
     }
@@ -55,6 +57,5 @@ public class UserInfoServiceImpl implements IUserInfoService {
     @Override
     public void deleteVerificationCode(String verificationCode) {
         repo.deleteVerificationCode(verificationCode);
-//>>>>>>> 5afd2c5b5caabba5ce3c3efdcbfde67740e84afc
     }
 }

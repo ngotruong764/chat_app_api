@@ -8,9 +8,9 @@ import java.util.Optional;
 
 @Repository
 public interface UserInfoRepository extends JpaRepository<UserInfo, Long> {
-//<<<<<<< HEAD
+
     UserInfo findUserInfoById(Long id);
-//=======
+
     Optional<UserInfo> findByEmail(String email);
     Optional<UserInfo> findByEmailAndIsActive(String email, boolean isActive);
 
@@ -25,5 +25,5 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Long> {
             + " set a.verificationCode = null"
             + " where a.verificationCode = :verificationCode")
     void deleteVerificationCode(@Param("verificationCode") String confirmationCode);
-//>>>>>>> 5afd2c5b5caabba5ce3c3efdcbfde67740e84afc
+
 }

@@ -55,6 +55,7 @@ public class JwtService {
         return Jwts.builder()
                 .issuer(ApplicationConstant.JWT_ISSUER)
                 .claims(extraClaims)
+                .subject(userDetails.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis()+ expiration))
                 .signWith(getSignInKey())
