@@ -35,7 +35,7 @@ public class SecurityConfig {
             request.requestMatchers("/api/v1/user-info/register").permitAll();
             request.requestMatchers("/api/v1/user-info/confirm-account").permitAll();
             request.requestMatchers("/api/v1/user-info/login").permitAll();
-            request.anyRequest().permitAll();
+            request.anyRequest().authenticated();
         });
 
         // disable csrf
