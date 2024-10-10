@@ -25,7 +25,7 @@ public class UserInfo {
     private String firstName;
     @Column(name = "last_name")
     private String lastName;
-    @Column(name = "user_name")
+    @Column(name = "username")
     private String username;
     @Column(name = "phone_number", length = 10)
     private String phoneNumber;
@@ -35,10 +35,10 @@ public class UserInfo {
     private Boolean status;
     @Column(name = "profile_picture")
     private String profilePicture;
-    @Column(name = "created_at")
-    private Timestamp createdAt;
-    @Column(name = "updated_at")
-    private Timestamp updatedAt;
+    @Column(name = "create_at")
+    private Timestamp createAt;
+    @Column(name = "update_at")
+    private Timestamp updateAt;
     @Column(name = "role")
     private Enum role;
 
@@ -105,20 +105,20 @@ public class UserInfo {
         this.profilePicture = profilePicture;
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
+    public Timestamp getCreateAt() {
+        return createAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateAt(Timestamp createAt) {
+        this.createAt = createAt;
     }
 
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
+    public Timestamp getUpdateAt() {
+        return updateAt;
     }
 
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateAt(Timestamp updateAt) {
+        this.updateAt = updateAt;
     }
 
     public Enum getRole() {

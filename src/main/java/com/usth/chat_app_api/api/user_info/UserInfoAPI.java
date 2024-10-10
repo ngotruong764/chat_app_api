@@ -66,17 +66,17 @@ public class UserInfoAPI {
                 javaMailSender.send(simpleMailMessage);
                 // hash and set new hash password
                 response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
-                response.setStatusCode(HttpStatus.OK.value());
+                response.setResponseCode(HttpStatus.OK.value());
                 ResponseEntity.status(HttpStatus.OK.value()).body(response);
             } else {
                 throw new Exception("User: "+ registerUser.getEmail() +" already existed");
             }
             //
-            response.setStatusCode(HttpStatus.OK.value());
+            response.setResponseCode(HttpStatus.OK.value());
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e){
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
                     .body(response);
@@ -94,7 +94,8 @@ public class UserInfoAPI {
                 // set active
                 registerUser.get().setActive(true);
                 // set create time
-                registerUser.get().setCreatedAt(new Timestamp(System.currentTimeMillis()));
+                registerUser.get().setCreateAt(new Timestamp(System.currentTimeMillis()));
+                registerUser.get().setUpdateAt(new Timestamp(System.currentTimeMillis()));
                 registerUser.get().setVerificationCode(null);   // delete verification code
                 userInfoService.saveUserInfo(registerUser.get());
             }
@@ -102,7 +103,7 @@ public class UserInfoAPI {
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e){
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
                     .body(response);
@@ -136,10 +137,10 @@ public class UserInfoAPI {
             System.out.println(jwtToken);
 
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
-            response.setStatusCode(HttpStatus.OK.value());
+            response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
         } catch (Exception e) {
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
                     .body(response);
@@ -157,13 +158,18 @@ public class UserInfoAPI {
 //
 //            }
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
-            response.setStatusCode(HttpStatus.OK.value());
+            response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
         } catch (Exception e){
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
                     .body(response);
         }
+    }
+
+    @PostMapping("/hello")
+    public String helloworld(){
+        return "Hello";
     }
 }

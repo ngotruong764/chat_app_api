@@ -32,3 +32,23 @@ CREATE TABLE user_info(
                           PRIMARY KEY (id),
                           FOREIGN KEY (user_login_id) REFERENCES user_login(id)
 );
+
+CREATE TABLE user_info(
+                          id BIGINT UNSIGNED UNIQUE AUTO_INCREMENT,
+                          email VARCHAR(255) UNIQUE,
+                          username VARCHAR(100) UNIQUE,
+                          password VARCHAR(255),
+                          verification_code VARCHAR(255),
+                          code_create_at TIMESTAMP,
+                          is_active BOOL DEFAULT FALSE,
+                          first_name VARCHAR(100),
+                          last_name VARCHAR(100),
+                          phone_number VARCHAR(10) UNIQUE,
+                          sex BOOL,
+                          status BOOL DEFAULT FALSE,
+                          profile_picture VARCHAR(500),
+                          create_at TIMESTAMP,
+                          update_at TIMESTAMP,
+                          role ENUM( 'USER', 'ADMIN'),
+                          PRIMARY KEY (id)
+);
