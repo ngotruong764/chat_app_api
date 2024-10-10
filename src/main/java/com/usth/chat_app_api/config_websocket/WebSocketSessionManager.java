@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.config_websocket;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -9,13 +10,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
+@Slf4j
 public class WebSocketSessionManager {
 
     private final Map<Long, List<WebSocketSession>> sessions = new ConcurrentHashMap<>();
 
     public void addSession(Long userId, WebSocketSession session) {
-        sessions.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(session);
+        List<WebSocketSession> userSessions = sessions.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>());
+
+        // check session if exist
+        if (!userSessions.contains(session)) {
+            userSessions.add(session);
+            log.info("Added new session for userId: " + userId + ". Total sessions: " + userSessions.size());
+        } else {
+            log.info("Session already exists for userId: " + userId);
+        }
     }
+
 
     public List<WebSocketSession> getSessions(Long userId) {
         return sessions.get(userId);

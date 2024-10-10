@@ -12,7 +12,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
-        webSocketHandlerRegistry.addHandler(myHandler(), "/chat");
+        webSocketHandlerRegistry.addHandler(myHandler(), "/api/v1/chat");
     }
     @Bean(name = "myWebSocketHandler")
     public WebSocketHandler myHandler() {

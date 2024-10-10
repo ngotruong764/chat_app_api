@@ -11,10 +11,11 @@ public class UserInfoServiceImpl implements IUserInfoService {
     private UserInfoRepository repo;
 
     @Override
-<<<<<<< HEAD
+//<<<<<<< HEAD
     public UserInfo findUserInforById(Long id) {
         return repo.findUserInfoById(id);
-=======
+    }
+//=======
     public Optional<UserInfo> findByEmail(String email) {
         return repo.findByEmail(email);
     }
@@ -54,6 +55,6 @@ public class UserInfoServiceImpl implements IUserInfoService {
     @Override
     public void deleteVerificationCode(String verificationCode) {
         repo.deleteVerificationCode(verificationCode);
->>>>>>> 5afd2c5b5caabba5ce3c3efdcbfde67740e84afc
+//>>>>>>> 5afd2c5b5caabba5ce3c3efdcbfde67740e84afc
     }
 }
