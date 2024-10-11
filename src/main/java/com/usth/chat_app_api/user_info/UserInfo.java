@@ -2,6 +2,7 @@ package com.usth.chat_app_api.user_info;
 
 import jakarta.persistence.*;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 
 @Table(name = "user_info")
@@ -29,8 +30,11 @@ public class UserInfo {
     private String username;
     @Column(name = "phone_number", length = 10)
     private String phoneNumber;
+    @Column(name = "dob")
+    private Date dob;
     @Column(name = "sex")
-    private Boolean sex;
+    @Enumerated(EnumType.STRING)
+    private Gender sex;
     @Column(name = "status")
     private Boolean status;
     @Column(name = "profile_picture")
@@ -81,11 +85,19 @@ public class UserInfo {
         this.phoneNumber = phoneNumber;
     }
 
-    public Boolean getSex() {
+    public Date getDob() {
+        return dob;
+    }
+
+    public void setDob(Date dob) {
+        this.dob = dob;
+    }
+
+    public Gender getSex() {
         return sex;
     }
 
-    public void setSex(Boolean sex) {
+    public void setSex(Gender sex) {
         this.sex = sex;
     }
 

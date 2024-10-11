@@ -4,6 +4,7 @@ import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
 import com.usth.chat_app_api.user_info.UserInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/user-info")
+@Slf4j
 public class UserInfoAPI {
 
     @Autowired
@@ -56,7 +58,7 @@ public class UserInfoAPI {
                 registerUser.setPassword(hashPwd);
                 registerUser.setVerificationCode(randomToken);
                 //save un-active registration user
-                userInfoService.saveUserInfo(registerUser);
+                UserInfo savedUser = userInfoService.saveUserInfo(registerUser);
                 // sending email
                 SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 //                simpleMailMessage.setFrom();
@@ -64,7 +66,8 @@ public class UserInfoAPI {
                 simpleMailMessage.setSubject(emailSubject);
                 simpleMailMessage.setText("Your verification code is:" + randomToken);
                 javaMailSender.send(simpleMailMessage);
-                // hash and set new hash password
+                //
+                response.setUserInfo(savedUser);
                 response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
                 response.setResponseCode(HttpStatus.OK.value());
                 ResponseEntity.status(HttpStatus.OK.value()).body(response);
@@ -168,8 +171,24 @@ public class UserInfoAPI {
         }
     }
 
-    @PostMapping("/hello")
-    public String helloworld(){
-        return "Hello";
+    // Save use info
+    @PostMapping("/update-user")
+    public ResponseEntity<?> updateUser(@RequestBody UserInfoRequest request){
+        UserInfoResponse response = new UserInfoResponse();
+        try{
+            // get request
+            UserInfo userInfo = request.getUserInfo();
+            // update user info
+            userInfoService.saveUserInfo(userInfo);
+            //
+            response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
+            response.setResponseCode(HttpStatus.OK.value());
+            return ResponseEntity.status(HttpStatus.OK.value()).body(response);
+        } catch (Exception e){
+            log.info(e.getMessage());
+            response.setMessage(e.getMessage());
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(response);
+        }
     }
 }
