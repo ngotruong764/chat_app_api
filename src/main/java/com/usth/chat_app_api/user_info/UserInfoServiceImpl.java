@@ -55,6 +55,11 @@ public class UserInfoServiceImpl implements IUserInfoService {
     }
 
     @Override
+    public Optional<UserInfo> findByIdAndVerificationCode(Long id, String verificationCode) {
+        return repo.findByIdAndVerificationCode(id, verificationCode);
+    }
+
+    @Override
     public void deleteVerificationCode(String verificationCode) {
         repo.deleteVerificationCode(verificationCode);
     }

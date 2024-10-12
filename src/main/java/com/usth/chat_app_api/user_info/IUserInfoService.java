@@ -11,6 +11,7 @@ public interface IUserInfoService {
     Optional<UserInfo> findByUsernameAndIsActive(String username, boolean isActive);
     void deleteByEmail(String email);
     Optional<UserInfo> findByVerificationCode(String verificationCode);
+    Optional<UserInfo> findByIdAndVerificationCode(Long id, String verificationCode);
 
     void deleteVerificationCode(String verificationCode);
 

@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.api.user_info;
 
+import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
@@ -41,7 +42,10 @@ public class UserInfoAPI {
     public ResponseEntity<UserInfoResponse> registerUser(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();
         final String emailSubject = "Complete Registration";
-        final String randomToken = UUID.randomUUID().toString();
+        // create random token
+        final int MIN =ApplicationConstant.MIN;
+        final int MAX =ApplicationConstant.MAX;
+        String randomToken = String.valueOf((int)(Math.random()*(MAX-MIN+1)+MIN));
         try{
             UserInfo registerUser = request.getUserInfo();
             // checking account is already exist or not
@@ -64,7 +68,7 @@ public class UserInfoAPI {
 //                simpleMailMessage.setFrom();
                 simpleMailMessage.setTo(registerUser.getEmail());
                 simpleMailMessage.setSubject(emailSubject);
-                simpleMailMessage.setText("Your verification code is:" + randomToken);
+                simpleMailMessage.setText("Your verification code is: " + randomToken);
                 javaMailSender.send(simpleMailMessage);
                 //
                 response.setUserInfo(savedUser);
@@ -90,8 +94,11 @@ public class UserInfoAPI {
     public ResponseEntity<UserInfoResponse> confirmAccount(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();
         try{
-            String verificationCode = request.getVerificationCode();
-            Optional<UserInfo> registerUser = userInfoService.findByVerificationCode(verificationCode);
+            UserInfo user = request.getUserInfo();
+            // Get requests
+            Long userId = user.getId();
+            String verificationCode = user.getVerificationCode();
+            Optional<UserInfo> registerUser = userInfoService.findByIdAndVerificationCode(userId, verificationCode);
             //
             if(registerUser.isPresent()){
                 // set active
@@ -100,10 +107,13 @@ public class UserInfoAPI {
                 registerUser.get().setCreateAt(new Timestamp(System.currentTimeMillis()));
                 registerUser.get().setUpdateAt(new Timestamp(System.currentTimeMillis()));
                 registerUser.get().setVerificationCode(null);   // delete verification code
-                userInfoService.saveUserInfo(registerUser.get());
+                UserInfo userInfo = userInfoService.saveUserInfo(registerUser.get());
+                // set user info response
+                response.setUserInfo(userInfo);
             }
             //
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
+            response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e){
             response.setResponseCode(HttpStatus.BAD_REQUEST.value());
