@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -54,10 +55,13 @@ public class SecurityConfig {
                 sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         // disable form login
         http.formLogin(AbstractHttpConfigurer::disable);
-//        http.authenticationProvider(authenticationProvider);
         //
 //        huy mới tắt tạm cái jwt để test endpoint
-//        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // logout
+        http.logout((logout) -> logout.logoutUrl("/api/v1/user-info/logout")
+                .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()));
 
         return http.build();
     }

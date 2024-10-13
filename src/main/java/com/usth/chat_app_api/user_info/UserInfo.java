@@ -1,13 +1,16 @@
 package com.usth.chat_app_api.user_info;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.util.Collection;
 
 @Table(name = "user_info")
 @Entity
-public class UserInfo {
+public class UserInfo implements UserDetails {
     @Id
     @Column(name = "id", unique = true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,6 +74,26 @@ public class UserInfo {
 
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return UserDetails.super.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
     }
 
     public void setUsername(String username) {
@@ -147,6 +170,11 @@ public class UserInfo {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
     }
 
     public String getPassword() {

@@ -38,6 +38,7 @@ public class UserInfoAPI {
     private JavaMailSender javaMailSender;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @PostMapping(value = "/register")
     public ResponseEntity<UserInfoResponse> registerUser(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();
@@ -148,7 +149,10 @@ public class UserInfoAPI {
             String jwtToken = jwtService.generateToken((UserDetails) authentication.getPrincipal());
             response.setJwt_token(jwtToken);
             System.out.println(jwtToken);
-
+            // get user info
+            UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            response.setUserInfo(user);
+            //
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
