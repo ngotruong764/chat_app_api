@@ -8,6 +8,8 @@ import com.usth.chat_app_api.user_info.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNullApi;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -43,7 +45,7 @@ public class MyHandler extends TextWebSocketHandler {
 
         Long userId = messageDTO.getUserId();
 
-        sessionManager.addSession(userId, session);
+//        sessionManager.addSession(userId, session);
 
         messageService.sendMessage(userId, messageDTO.getConversationId(), messageDTO.getContent());
 
@@ -91,6 +93,7 @@ public class MyHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("Connection established: " + session.getId());
+
 
     }
 

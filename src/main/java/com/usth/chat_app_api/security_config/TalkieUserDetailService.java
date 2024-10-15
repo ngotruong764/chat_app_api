@@ -21,18 +21,13 @@ public class TalkieUserDetailService implements UserDetailsService {
 
     
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserInfo loadUserByUsername(String username) throws UsernameNotFoundException {
         boolean isActive = true;
         Optional<UserInfo> userLogin = repo.findByEmailAndIsActive(username, isActive);
-        // Empty authorities
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        if(userLogin.isPresent() ){
-            return new User(userLogin.get().getEmail(), userLogin.get().getPassword(), authorities);
-        } else{
-            UserInfo userInfo = repo.findByUsernameAndIsActive(username, isActive)
-                    .orElseThrow(() -> new UsernameNotFoundException("User detail not found for the user:" + username));;
-            return new User(userInfo.getUsername(), userInfo.getPassword(), authorities);
+        if(userLogin.isEmpty()){
+            throw new UsernameNotFoundException("User detail not found for the user:" + username);
         }
+        return userLogin.get();
     }
 
 }

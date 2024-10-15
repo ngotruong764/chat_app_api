@@ -1,11 +1,16 @@
 package com.usth.chat_app_api.api.user_info;
 
+<<<<<<< HEAD
 import com.usth.chat_app_api.config_websocket.WebSocketSessionManager;
+=======
+import com.usth.chat_app_api.constant.ApplicationConstant;
+>>>>>>> f9516bf7e0063ca125202f84204fddf42feb1dd6
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
 import com.usth.chat_app_api.security_config.TalkieUserDetailService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
 import com.usth.chat_app_api.user_info.UserInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +31,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/user-info")
+@Slf4j
 public class UserInfoAPI {
 
     @Autowired
@@ -38,13 +44,20 @@ public class UserInfoAPI {
     private JavaMailSender javaMailSender;
     @Autowired
     private PasswordEncoder passwordEncoder;
+<<<<<<< HEAD
     @Autowired
     private WebSocketSessionManager sessionManager;
+=======
+
+>>>>>>> f9516bf7e0063ca125202f84204fddf42feb1dd6
     @PostMapping(value = "/register")
     public ResponseEntity<UserInfoResponse> registerUser(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();
         final String emailSubject = "Complete Registration";
-        final String randomToken = UUID.randomUUID().toString();
+        // create random token
+        final int MIN =ApplicationConstant.MIN;
+        final int MAX =ApplicationConstant.MAX;
+        String randomToken = String.valueOf((int)(Math.random()*(MAX-MIN+1)+MIN));
         try{
             UserInfo registerUser = request.getUserInfo();
             // checking account is already exist or not
@@ -61,15 +74,16 @@ public class UserInfoAPI {
                 registerUser.setPassword(hashPwd);
                 registerUser.setVerificationCode(randomToken);
                 //save un-active registration user
-                userInfoService.saveUserInfo(registerUser);
+                UserInfo savedUser = userInfoService.saveUserInfo(registerUser);
                 // sending email
                 SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 //                simpleMailMessage.setFrom();
                 simpleMailMessage.setTo(registerUser.getEmail());
                 simpleMailMessage.setSubject(emailSubject);
-                simpleMailMessage.setText("Your verification code is:" + randomToken);
+                simpleMailMessage.setText("Your verification code is: " + randomToken);
                 javaMailSender.send(simpleMailMessage);
-                // hash and set new hash password
+                //
+                response.setUserInfo(savedUser);
                 response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
                 response.setResponseCode(HttpStatus.OK.value());
                 ResponseEntity.status(HttpStatus.OK.value()).body(response);
@@ -92,8 +106,11 @@ public class UserInfoAPI {
     public ResponseEntity<UserInfoResponse> confirmAccount(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();
         try{
-            String verificationCode = request.getVerificationCode();
-            Optional<UserInfo> registerUser = userInfoService.findByVerificationCode(verificationCode);
+            UserInfo user = request.getUserInfo();
+            // Get requests
+            Long userId = user.getId();
+            String verificationCode = user.getVerificationCode();
+            Optional<UserInfo> registerUser = userInfoService.findByIdAndVerificationCode(userId, verificationCode);
             //
             if(registerUser.isPresent()){
                 // set active
@@ -102,10 +119,13 @@ public class UserInfoAPI {
                 registerUser.get().setCreateAt(new Timestamp(System.currentTimeMillis()));
                 registerUser.get().setUpdateAt(new Timestamp(System.currentTimeMillis()));
                 registerUser.get().setVerificationCode(null);   // delete verification code
-                userInfoService.saveUserInfo(registerUser.get());
+                UserInfo userInfo = userInfoService.saveUserInfo(registerUser.get());
+                // set user info response
+                response.setUserInfo(userInfo);
             }
             //
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
+            response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e){
             response.setResponseCode(HttpStatus.BAD_REQUEST.value());
@@ -140,8 +160,15 @@ public class UserInfoAPI {
             String jwtToken = jwtService.generateToken((UserDetails) authentication.getPrincipal());
             response.setJwt_token(jwtToken);
             System.out.println(jwtToken);
+<<<<<<< HEAD
 
 
+=======
+            // get user info
+            UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            response.setUserInfo(user);
+            //
+>>>>>>> f9516bf7e0063ca125202f84204fddf42feb1dd6
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
@@ -174,8 +201,24 @@ public class UserInfoAPI {
         }
     }
 
-    @PostMapping("/hello")
-    public String helloworld(){
-        return "Hello";
+    // Save use info
+    @PostMapping("/update-user")
+    public ResponseEntity<?> updateUser(@RequestBody UserInfoRequest request){
+        UserInfoResponse response = new UserInfoResponse();
+        try{
+            // get request
+            UserInfo userInfo = request.getUserInfo();
+            // update user info
+            userInfoService.saveUserInfo(userInfo);
+            //
+            response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
+            response.setResponseCode(HttpStatus.OK.value());
+            return ResponseEntity.status(HttpStatus.OK.value()).body(response);
+        } catch (Exception e){
+            log.info(e.getMessage());
+            response.setMessage(e.getMessage());
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(response);
+        }
     }
 }

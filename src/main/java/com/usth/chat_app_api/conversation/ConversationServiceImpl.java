@@ -41,7 +41,6 @@ public class ConversationServiceImpl implements ConversationService {
             dto.setConversationName(conversationName);
             dto.setLastMessage(lastMessage != null ? lastMessage.getContent() : "No messages yet");
             dto.setLastMessageTime(lastMessage != null ? lastMessage.getCreatedAt() : null);
-
             conversationDTOs.add(dto);
         }
         return conversationDTOs;
