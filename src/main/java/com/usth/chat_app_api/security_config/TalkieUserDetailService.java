@@ -18,6 +18,8 @@ import java.util.Optional;
 public class TalkieUserDetailService implements UserDetailsService {
     @Autowired
     private UserInfoRepository repo;
+
+    
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         boolean isActive = true;
@@ -32,4 +34,5 @@ public class TalkieUserDetailService implements UserDetailsService {
             return new User(userInfo.getUsername(), userInfo.getPassword(), authorities);
         }
     }
+
 }

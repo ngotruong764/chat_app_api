@@ -26,4 +26,5 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Long> {
             + " where a.verificationCode = :verificationCode")
     void deleteVerificationCode(@Param("verificationCode") String confirmationCode);
 
+    Optional<UserInfo> findUserInfoByUsername(String username);
 }

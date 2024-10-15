@@ -1,7 +1,9 @@
 package com.usth.chat_app_api.api.user_info;
 
+import com.usth.chat_app_api.config_websocket.WebSocketSessionManager;
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
+import com.usth.chat_app_api.security_config.TalkieUserDetailService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
 import com.usth.chat_app_api.user_info.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.sql.Timestamp;
 import java.util.Optional;
@@ -35,6 +38,8 @@ public class UserInfoAPI {
     private JavaMailSender javaMailSender;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private WebSocketSessionManager sessionManager;
     @PostMapping(value = "/register")
     public ResponseEntity<UserInfoResponse> registerUser(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();
@@ -111,7 +116,7 @@ public class UserInfoAPI {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserInfoResponse> authenticate(@RequestBody UserInfoRequest request) {
+    public ResponseEntity<UserInfoResponse> authenticate(@RequestBody UserInfoRequest request) throws Exception {
         UserInfoResponse response = new UserInfoResponse();
         try {
             UserInfo userInfo = request.getUserInfo();
@@ -135,6 +140,7 @@ public class UserInfoAPI {
             String jwtToken = jwtService.generateToken((UserDetails) authentication.getPrincipal());
             response.setJwt_token(jwtToken);
             System.out.println(jwtToken);
+
 
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
