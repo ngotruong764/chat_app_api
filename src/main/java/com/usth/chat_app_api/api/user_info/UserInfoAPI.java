@@ -1,10 +1,7 @@
 package com.usth.chat_app_api.api.user_info;
 
-<<<<<<< HEAD
 import com.usth.chat_app_api.config_websocket.WebSocketSessionManager;
-=======
 import com.usth.chat_app_api.constant.ApplicationConstant;
->>>>>>> f9516bf7e0063ca125202f84204fddf42feb1dd6
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
 import com.usth.chat_app_api.security_config.TalkieUserDetailService;
@@ -44,12 +41,9 @@ public class UserInfoAPI {
     private JavaMailSender javaMailSender;
     @Autowired
     private PasswordEncoder passwordEncoder;
-<<<<<<< HEAD
     @Autowired
     private WebSocketSessionManager sessionManager;
-=======
 
->>>>>>> f9516bf7e0063ca125202f84204fddf42feb1dd6
     @PostMapping(value = "/register")
     public ResponseEntity<UserInfoResponse> registerUser(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();
@@ -160,15 +154,10 @@ public class UserInfoAPI {
             String jwtToken = jwtService.generateToken((UserDetails) authentication.getPrincipal());
             response.setJwt_token(jwtToken);
             System.out.println(jwtToken);
-<<<<<<< HEAD
-
-
-=======
             // get user info
             UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             response.setUserInfo(user);
             //
->>>>>>> f9516bf7e0063ca125202f84204fddf42feb1dd6
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
