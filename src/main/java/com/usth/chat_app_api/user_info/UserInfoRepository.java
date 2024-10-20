@@ -26,8 +26,13 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Long> {
             + " where a.verificationCode = :verificationCode")
     void deleteVerificationCode(@Param("verificationCode") String confirmationCode);
 
-    Optional<UserInfo> findUserInfoByUsername(String username);
 
     Optional<UserInfo> findByIdAndVerificationCode(Long id, String verificationCode);
 
+    @Query(value = "select a from UserInfo a "
+            + "where a.username = :username or a.email = :username "
+            + "and a.isActive = :isActive")
+    Optional<UserInfo> findByEmailOrUsernameAndIsActive(
+            @Param("username") String username,
+            @Param("isActive") boolean isActive);
 }

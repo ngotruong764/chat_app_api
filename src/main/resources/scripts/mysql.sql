@@ -52,3 +52,15 @@ CREATE TABLE user_info(
                           role ENUM( 'USER', 'ADMIN'),
                           PRIMARY KEY (id)
 );
+
+CREATE TABLE friend (
+                        id BIGINT UNSIGNED UNIQUE AUTO_INCREMENT,
+                        uid1 BIGINT UNSIGNED,
+                        uid2 BIGINT UNSIGNED,
+                        createAt timestamp,
+                        updateAt timestamp,
+                        status ENUM('REQ_UID1', 'REQ_UID2', 'FRIEND', 'REJECT', 'BLOCK'),
+                        PRIMARY KEY (id),
+                        FOREIGN KEY (uid1) REFERENCES user_info(id),
+                        FOREIGN KEY (uid2) REFERENCES user_info(id)
+);

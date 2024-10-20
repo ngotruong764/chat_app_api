@@ -1,8 +1,5 @@
 package com.usth.chat_app_api.api.user_info;
 
-
-import com.usth.chat_app_api.config_websocket.WebSocketSessionManager;
-
 import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
@@ -158,7 +155,6 @@ public class UserInfoAPI {
             UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             response.setUserInfo(user);
             //
-
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
