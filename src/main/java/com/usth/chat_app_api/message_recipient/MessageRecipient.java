@@ -3,7 +3,9 @@ package com.usth.chat_app_api.message_recipient;
 import com.usth.chat_app_api.message.Message;
 import com.usth.chat_app_api.user_info.UserInfo;
 import jakarta.persistence.*;
+import lombok.Getter;
 
+@Getter
 @Entity
 @Table(name = "message_recipient")
 public class MessageRecipient {
@@ -39,32 +41,16 @@ public class MessageRecipient {
         this.isRead = false;
     }
 
-    public Long getId() {
-        return id;
-    }
-
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public UserInfo getRecipient() {
-        return recipient;
     }
 
     public void setRecipient(UserInfo recipient) {
         this.recipient = recipient;
     }
 
-    public Message getMessage() {
-        return message;
-    }
-
     public void setMessage(Message message) {
         this.message = message;
-    }
-
-    public Boolean getIsRead() {
-        return isRead;
     }
 
     public void setIsRead(Boolean isRead) {

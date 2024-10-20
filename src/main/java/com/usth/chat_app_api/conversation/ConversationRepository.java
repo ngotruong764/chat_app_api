@@ -1,6 +1,5 @@
 package com.usth.chat_app_api.conversation;
 
-import com.usth.chat_app_api.user_info.UserInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

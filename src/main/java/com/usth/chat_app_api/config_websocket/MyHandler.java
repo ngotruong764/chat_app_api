@@ -7,9 +7,6 @@ import com.usth.chat_app_api.user_info.IUserInfoService;
 import com.usth.chat_app_api.user_info.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNullApi;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -44,8 +41,6 @@ public class MyHandler extends TextWebSocketHandler {
         MessageDTO messageDTO = objectMapper.readValue(message.getPayload(), MessageDTO.class);
 
         Long userId = messageDTO.getUserId();
-
-//        sessionManager.addSession(userId, session);
 
         messageService.sendMessage(userId, messageDTO.getConversationId(), messageDTO.getContent());
 
@@ -92,10 +87,35 @@ public class MyHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        // Log the connection establishment
         log.info("Connection established: " + session.getId());
 
+        // Extract the query parameters from the URI
+        String query = session.getUri().getQuery();
 
+        // Parse the query parameters to get the userId
+        Map<String, String> queryParams = getQueryParams(query);
+        String userIdStr = queryParams.get("userId");
+
+        if (userIdStr != null) {
+            try {
+                // Parse userId from String to Long
+                Long userId = Long.parseLong(userIdStr);
+
+                // Add the session to the sessionManager with the userId
+                sessionManager.addSession(userId, session);
+
+                log.info("Session added for userId: " + userId);
+            } catch (NumberFormatException e) {
+                log.error("Invalid userId in query parameters: " + userIdStr, e);
+                session.close(CloseStatus.BAD_DATA);
+            }
+        } else {
+            log.warn("No userId found in query parameters");
+            session.close(CloseStatus.BAD_DATA);
+        }
     }
+
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
@@ -108,5 +128,20 @@ public class MyHandler extends TextWebSocketHandler {
         } else {
             log.warn("Failed to remove session: userId not found for session " + session.getId());
         }
+    }
+    private Map<String, String> getQueryParams(String query) {
+        Map<String, String> queryParams = new HashMap<>();
+        if (query != null) {
+            String[] pairs = query.split("&");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=");
+                if (keyValue.length > 1) {
+                    queryParams.put(keyValue[0], keyValue[1]);
+                } else {
+                    queryParams.put(keyValue[0], "");
+                }
+            }
+        }
+        return queryParams;
     }
 }

@@ -3,8 +3,11 @@ package com.usth.chat_app_api.conversation_participant;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.user_info.UserInfo;
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 @Table(name = "conversation_participant")
 public class ConversationParticipant {
@@ -28,32 +31,17 @@ public class ConversationParticipant {
         this.user = user;
         this.joinedAt = joinedAt;
     }
-    public Long getId() {
-        return id;
-    }
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Conversation getConversation() {
-        return conversation;
     }
 
     public void setConversation(Conversation conversation) {
         this.conversation = conversation;
     }
 
-    public UserInfo getUser() {
-        return user;
-    }
-
     public void setUser(UserInfo user) {
         this.user = user;
-    }
-
-    public LocalDateTime getJoinedAt() {
-        return joinedAt;
     }
 
     public void setJoinedAt(LocalDateTime joinedAt) {

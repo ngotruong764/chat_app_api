@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,11 +55,19 @@ public class MessageServiceImpl implements MessageService {
         // Lưu thông tin người nhận tin nhắn (recipients)
         List<ConversationParticipant> participants = conversationParticipantRepository.findByConversationId(conversationId);
         for (ConversationParticipant participant : participants) {
-            MessageRecipient messageRecipient = new MessageRecipient(participant.getUser(), savedMessage);
-            messageRecipientRepository.save(messageRecipient);
+            // Kiểm tra nếu participant không phải là sender thì mới lưu
+            if (!participant.getUser().getId().equals(userId)) {
+                MessageRecipient messageRecipient = new MessageRecipient(participant.getUser(), savedMessage);
+                messageRecipientRepository.save(messageRecipient);
+            }
         }
 
         return savedMessage;
+    }
+
+    @Override
+    public Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation) {
+        return messageRepository.findFirstByConversationOrderByCreatedAtDesc(conversation);
     }
 
     @Override
@@ -77,5 +86,15 @@ public class MessageServiceImpl implements MessageService {
         return participants.stream()
                 .map(ConversationParticipant::getUser)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Message> findByConversation(Conversation conversation) {
+        return messageRepository.findByConversation(conversation);
+    }
+
+    @Override
+    public void deleteByConversation(Optional<Conversation> conversation) {
+        messageRepository.deleteByConversation(conversation);
     }
 }

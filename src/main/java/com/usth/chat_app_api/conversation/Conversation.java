@@ -18,7 +18,7 @@ public class Conversation {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "is_group", nullable = false)
+    @Column(name = "is_group")
     private Boolean isGroup;
 
     @ManyToOne

@@ -1,15 +1,19 @@
 package com.usth.chat_app_api.message;
 
+import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.user_info.UserInfo;
 import java.util.List;
+import java.util.Optional;
 
 public interface MessageService {
 
     Message sendMessage(Long userId, Long conversationId, String content);
 
+    Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation);
 
     void markMessageAsRead(Long messageId, Long recipientId);
 
-
     List<UserInfo> getParticipantsByConversationId(Long conversationId);
+    List<Message> findByConversation(Conversation conversation);
+    void deleteByConversation(Optional<Conversation> conversation);
 }
