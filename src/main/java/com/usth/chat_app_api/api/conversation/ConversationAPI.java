@@ -3,7 +3,6 @@ package com.usth.chat_app_api.api.conversation;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.conversation.ConversationDTO;
 import com.usth.chat_app_api.conversation.ConversationService;
-import com.usth.chat_app_api.user_info.IUserInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +15,8 @@ import java.util.List;
 public class ConversationAPI {
     @Autowired
     private ConversationService conversationService;
-    @Autowired
-    private IUserInfoService userInfoService;
-    @GetMapping("/conversation/user/{userId}")
-    public ResponseEntity<List<ConversationDTO>> getConversations(@PathVariable Long userId) {
+    @GetMapping("/conversation/user")
+    public ResponseEntity<List<ConversationDTO>> getConversations(@RequestParam Long userId) {
         List<ConversationDTO> conversations = conversationService.getConversationsWithLastMessage(userId);
         return ResponseEntity.ok(conversations);
     }
