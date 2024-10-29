@@ -12,4 +12,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation);
     void deleteByConversation(Optional<Conversation> conversation);
     List<Message> findByConversation(Conversation conversation);
+    List<Message> findAllByConversation(Conversation conversation);
+    List<Message> findMessageByConversationAndContentContaining(Optional<Conversation> conversation, String keyword);
+    Message findMessageByConversationAndId(Optional<Conversation> conversation, Long messageId);
 }

@@ -96,4 +96,5 @@ public class Message {
         this.conversation = conversation;
     }
 
+
 }

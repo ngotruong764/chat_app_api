@@ -4,6 +4,7 @@ import com.usth.chat_app_api.conversation_participant.ConversationParticipant;
 import com.usth.chat_app_api.message.Message;
 import com.usth.chat_app_api.user_info.UserInfo;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,8 +22,8 @@ public class Conversation {
     @Column(name = "is_group")
     private Boolean isGroup;
 
-    @ManyToOne
-    @JoinColumn(name = "creator_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id",  nullable = false)
     private UserInfo creator;
 
     @Column(name = "created_at", nullable = false)

@@ -15,7 +15,7 @@ import java.util.List;
 public class ConversationAPI {
     @Autowired
     private ConversationService conversationService;
-    @GetMapping("/conversation/user")
+    @GetMapping("/getConversation/user")
     public ResponseEntity<List<ConversationDTO>> getConversations(@RequestParam Long userId) {
         List<ConversationDTO> conversations = conversationService.getConversationsWithLastMessage(userId);
         return ResponseEntity.ok(conversations);
@@ -33,7 +33,7 @@ public class ConversationAPI {
     }
     @DeleteMapping("/deleteConversation")
     public ResponseEntity<?> deleteConversation(@RequestParam Long id) {
-        System.out.println("The conversation id deleting is: "+id);
+        System.out.println("The conversation id deleting is: " + id);
         try {
             conversationService.deleteConversation(id);
             return ResponseEntity.ok("Conversation deleted successfully");
@@ -41,4 +41,27 @@ public class ConversationAPI {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting conversation");
         }
     }
+    @PutMapping("/updateConversation")
+    public ResponseEntity<?> updateConversation(
+            @RequestParam Long conversationId,
+            @RequestParam(required = false) String newName,
+            @RequestParam(required = false) String newImage,
+            @RequestParam(required = false) Long userIdToRemove) {
+        try {
+            if (newName != null) {
+                conversationService.updateConversationName(conversationId, newName);
+            }
+            if (newImage != null) {
+//                conversationService.updateConversationImage(conversationId, newImage);
+            }
+            if (userIdToRemove != null) {
+                conversationService.removeUserFromConversation(conversationId, userIdToRemove);
+            }
+
+            return ResponseEntity.ok("Conversation updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating conversation");
+        }
+    }
+
 }

@@ -8,7 +8,6 @@ import com.usth.chat_app_api.user_info.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -33,6 +32,8 @@ public class MyHandler extends TextWebSocketHandler {
 
     @Autowired
     private IUserInfoService userInfoService;
+
+
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -88,22 +89,17 @@ public class MyHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        // Log the connection establishment
         log.info("Connection established: " + session.getId());
 
-        // Extract the query parameters from the URI
         String query = session.getUri().getQuery();
 
-        // Parse the query parameters to get the userId
         Map<String, String> queryParams = getQueryParams(query);
         String userIdStr = queryParams.get("userId");
 
         if (userIdStr != null) {
             try {
-                // Parse userId from String to Long
                 Long userId = Long.parseLong(userIdStr);
 
-                // Add the session to the sessionManager with the userId
                 sessionManager.addSession(userId, session);
 
                 log.info("Session added for userId: " + userId);
@@ -121,7 +117,7 @@ public class MyHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 
-        Long userId = sessionManager.getUserIdBySession(session);  // Lấy userId từ session manager
+        Long userId = sessionManager.getUserIdBySession(session);
 
         if (userId != null) {
             sessionManager.removeSession(userId, session);

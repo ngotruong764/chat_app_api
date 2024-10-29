@@ -16,4 +16,7 @@ public interface MessageService {
     List<UserInfo> getParticipantsByConversationId(Long conversationId);
     List<Message> findByConversation(Conversation conversation);
     void deleteByConversation(Optional<Conversation> conversation);
+    List<Object[]> getMessageByConversation(Conversation conversation);
+    List<Object[]> searchMessageByContent(Long conversationId,String keyword);
+    Message getMessageDetails(Long conversationId,Long messageId);
 }

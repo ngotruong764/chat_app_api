@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ConversationServiceImpl implements ConversationService {
@@ -37,27 +38,55 @@ public class ConversationServiceImpl implements ConversationService {
         for (Conversation conversation : conversations) {
             Message lastMessage = messageService.findFirstByConversationOrderByCreatedAtDesc(conversation)
                     .orElse(null);
+
             List<ConversationParticipant> participants = conversation.getParticipants();
+
+            List<String> participantNames = participants.stream()
+                    .map(ConversationParticipant::getUser)
+                    .filter(user -> !user.getId().equals(userId))
+                    .map(UserInfo::getFirstName)
+                    .collect(Collectors.toList());
+
             String conversationName;
-            if (participants.size() > 2) {
+            if (conversation.getName() != null && !conversation.getName().isEmpty()) {
                 conversationName = conversation.getName();
             } else {
-                conversationName = participants.stream()
-                        .map(ConversationParticipant::getUser)
-                        .filter(user -> !user.getId().equals(userId))
-                        .findFirst()
-                        .map(UserInfo::getFirstName)
-                        .orElse("Unknown User");
+                if (participants.size() > 2) {
+                    if (participantNames.size() > 2) {
+                        conversationName = participantNames.get(0) + ", " + participantNames.get(1) + "...";
+                    } else {
+                        conversationName = String.join(", ", participantNames);
+                    }
+                } else {
+                    conversationName = participantNames.stream().findFirst().orElse("Unknown User");
+                }
             }
+
+
             ConversationDTO dto = new ConversationDTO();
             dto.setConversationId(conversation.getId());
             dto.setConversationName(conversationName);
             dto.setLastMessage(lastMessage != null ? lastMessage.getContent() : "No messages yet");
             dto.setLastMessageTime(lastMessage != null ? lastMessage.getCreatedAt() : null);
+
             conversationDTOs.add(dto);
         }
+        conversationDTOs.sort((c1, c2) -> {
+            if (c1.getLastMessageTime() == null && c2.getLastMessageTime() == null) {
+                return 0;
+            } else if (c1.getLastMessageTime() == null) {
+                return 1;
+            } else if (c2.getLastMessageTime() == null) {
+                return -1;
+            } else {
+                return c2.getLastMessageTime().compareTo(c1.getLastMessageTime());
+            }
+        });
+
         return conversationDTOs;
     }
+
+
 
     @Override
     public Conversation saveConversation(Conversation conversation) {
@@ -103,6 +132,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         newConversation.setParticipants(conversationParticipants);
 
+
         return newConversation;
     }
 
@@ -124,4 +154,27 @@ public class ConversationServiceImpl implements ConversationService {
         }
     }
 
+    @Override
+    public Conversation findById(Long conversationId) {
+        return conversationRepository.findById(conversationId).orElseThrow(() -> new RuntimeException("Conversation not found"));
+    }
+
+    @Override
+    @Transactional
+    public void updateConversationName(Long conversationId, String name) {
+        Optional<Conversation> conversationOpt = conversationRepository.findById(conversationId);
+        if (conversationOpt.isPresent()) {
+            Conversation conversation = conversationOpt.get();
+            conversation.setName(name);
+            conversationRepository.save(conversation);
+        } else {
+            throw new EntityNotFoundException("Conversation not found with id: " + conversationId);
+        }
+    }
+
+
+    @Override
+    public void removeUserFromConversation(Long conversationId, Long userIdToRemove) {
+
+    }
 }

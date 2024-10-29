@@ -35,6 +35,8 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     private ConversationParticipantRepository conversationParticipantRepository;
 
+
+
     @Override
     @Transactional
     public Message sendMessage(Long userId, Long conversationId, String content) {
@@ -52,10 +54,9 @@ public class MessageServiceImpl implements MessageService {
 
         Message savedMessage = messageRepository.save(message);
 
-        // Lưu thông tin người nhận tin nhắn (recipients)
+
         List<ConversationParticipant> participants = conversationParticipantRepository.findByConversationId(conversationId);
         for (ConversationParticipant participant : participants) {
-            // Kiểm tra nếu participant không phải là sender thì mới lưu
             if (!participant.getUser().getId().equals(userId)) {
                 MessageRecipient messageRecipient = new MessageRecipient(participant.getUser(), savedMessage);
                 messageRecipientRepository.save(messageRecipient);
@@ -96,5 +97,31 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public void deleteByConversation(Optional<Conversation> conversation) {
         messageRepository.deleteByConversation(conversation);
+    }
+
+    @Override
+    public List<Object[]> getMessageByConversation(Conversation conversation) {
+        List<Message> messages = messageRepository.findAllByConversation(conversation);
+
+        return messages.stream().map(message -> new Object[] {
+                message.getCreatorId().getFirstName(),
+                message.getCreatedAt(),
+                message.getContent()
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Object[]> searchMessageByContent(Long conversationId,String keyword) {
+        List<Message> messages = messageRepository.findMessageByConversationAndContentContaining(conversationRepository.findById(conversationId), keyword);
+        return messages.stream().map(message -> new Object[] {
+                message.getCreatorId().getFirstName(),
+                message.getCreatedAt(),
+                message.getContent()
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Message getMessageDetails(Long conversationId,Long messageId) {
+        return messageRepository.findMessageByConversationAndId(conversationRepository.findById(conversationId),messageId);
     }
 }

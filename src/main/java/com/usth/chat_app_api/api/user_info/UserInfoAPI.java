@@ -3,7 +3,6 @@ package com.usth.chat_app_api.api.user_info;
 import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
-import com.usth.chat_app_api.security_config.TalkieUserDetailService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
 import com.usth.chat_app_api.user_info.UserInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -19,17 +18,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.sql.Timestamp;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/user-info")
 @Slf4j
 public class UserInfoAPI {
-
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired

@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.user_info;
 
+import com.usth.chat_app_api.conversation.Conversation;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -7,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.List;
 
 @Table(name = "user_info")
 @Entity
@@ -48,6 +50,8 @@ public class UserInfo implements UserDetails {
     private Timestamp updateAt;
     @Column(name = "role")
     private Enum role;
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Conversation> conversations;
 
     public Long getId() {
         return id;
@@ -207,5 +211,13 @@ public class UserInfo implements UserDetails {
 
     public void setActive(Boolean active) {
         isActive = active;
+    }
+
+    public List<Conversation> getConversations() {
+        return conversations;
+    }
+
+    public void setConversations(List<Conversation> conversations) {
+        this.conversations = conversations;
     }
 }
