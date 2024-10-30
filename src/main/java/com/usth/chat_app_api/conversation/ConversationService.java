@@ -11,4 +11,5 @@ public interface ConversationService {
      Conversation findById(Long conversationId);
      void updateConversationName(Long conversationId,String name);
      void removeUserFromConversation(Long conversationId,Long userIdToRemove);
+     void addUserToConversation(Long conversationId,Long userId);
 }

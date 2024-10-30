@@ -30,6 +30,8 @@ public class ConversationServiceImpl implements ConversationService {
     private ConversationParticipantService conversationParticipantService;
     @Autowired
     private MessageRecipientService messageRecipientService;
+    @Autowired
+    private IUserInfoService iUserInfoService;
     @Override
     public List<ConversationDTO> getConversationsWithLastMessage(Long userId) {
         List<Conversation> conversations = conversationRepository.findAllConversationsWithLastMessageByUserId(userId);
@@ -172,9 +174,30 @@ public class ConversationServiceImpl implements ConversationService {
         }
     }
 
+    @Override
+    @Transactional
+    public void removeUserFromConversation(Long conversationId, Long userIdToRemove) {
+        List<ConversationParticipant> conversationParticipants = conversationParticipantService.findConversationParticipantByConversationId(conversationId);
+        UserInfo userToRemove = iUserInfoService.findUserInforById(userIdToRemove);
+
+        for (ConversationParticipant participant : conversationParticipants) {
+            if (participant.getUser().equals(userToRemove)) {
+                conversationParticipantService.deleteByUser(userToRemove);
+                break;
+            }
+        }
+    }
 
     @Override
-    public void removeUserFromConversation(Long conversationId, Long userIdToRemove) {
-
+    @Transactional
+    public void addUserToConversation(Long conversationId, Long userId) {
+       Optional<Conversation> conversation = conversationRepository.findById(conversationId);
+       if (conversation.isPresent()){
+           ConversationParticipant newConversationParticipant = new ConversationParticipant();
+           newConversationParticipant.setConversation(conversation.get());
+           newConversationParticipant.setUser(iUserInfoService.findUserInforById(userId));
+           newConversationParticipant.setJoinedAt(LocalDateTime.now());
+           conversationParticipantService.save(newConversationParticipant);
+       }
     }
 }

@@ -28,7 +28,6 @@ public class MessageApi {
         List<Object[]> messages = messageService.getMessageByConversation(conversation);
         return ResponseEntity.ok(messages);
     }
-
     @GetMapping("/searchMessagesByKeyword")
     public ResponseEntity<List<Object[]>> searchMessages(
             @RequestParam Long conversationId,
