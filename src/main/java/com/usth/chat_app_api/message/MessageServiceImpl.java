@@ -124,4 +124,5 @@ public class MessageServiceImpl implements MessageService {
     public Message getMessageDetails(Long conversationId,Long messageId) {
         return messageRepository.findMessageByConversationAndId(conversationRepository.findById(conversationId),messageId);
     }
+
 }

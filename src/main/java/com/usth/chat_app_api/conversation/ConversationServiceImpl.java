@@ -10,6 +10,9 @@ import com.usth.chat_app_api.user_info.UserInfo;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,38 +36,30 @@ public class ConversationServiceImpl implements ConversationService {
     @Autowired
     private IUserInfoService iUserInfoService;
     @Override
-    public List<ConversationDTO> getConversationsWithLastMessage(Long userId) {
-        List<Conversation> conversations = conversationRepository.findAllConversationsWithLastMessageByUserId(userId);
+    public List<ConversationDTO> getConversationsWithLastMessage(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Conversation> conversationPage = conversationRepository.findAllByUserId(userId, pageable);
+        List<Conversation> conversations = conversationPage.getContent();
         List<ConversationDTO> conversationDTOs = new ArrayList<>();
 
         for (Conversation conversation : conversations) {
-            Message lastMessage = messageService.findFirstByConversationOrderByCreatedAtDesc(conversation)
-                    .orElse(null);
-
-            List<ConversationParticipant> participants = conversation.getParticipants();
-
-            List<String> participantNames = participants.stream()
+            Optional<Message> lastMessageOptional = messageService.findFirstByConversationOrderByCreatedAtDesc(conversation);
+            Message lastMessage = lastMessageOptional.orElse(null);
+            List<String> participantNames = conversation.getParticipants().stream()
                     .map(ConversationParticipant::getUser)
                     .filter(user -> !user.getId().equals(userId))
                     .map(UserInfo::getFirstName)
                     .collect(Collectors.toList());
-
             String conversationName;
             if (conversation.getName() != null && !conversation.getName().isEmpty()) {
                 conversationName = conversation.getName();
             } else {
-                if (participants.size() > 2) {
-                    if (participantNames.size() > 2) {
-                        conversationName = participantNames.get(0) + ", " + participantNames.get(1) + "...";
-                    } else {
-                        conversationName = String.join(", ", participantNames);
-                    }
+                if (participantNames.size() > 2) {
+                    conversationName = participantNames.get(0) + ", " + participantNames.get(1) + "...";
                 } else {
-                    conversationName = participantNames.stream().findFirst().orElse("Unknown User");
+                    conversationName = String.join(", ", participantNames);
                 }
             }
-
-
             ConversationDTO dto = new ConversationDTO();
             dto.setConversationId(conversation.getId());
             dto.setConversationName(conversationName);
@@ -87,6 +82,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         return conversationDTOs;
     }
+
 
 
 

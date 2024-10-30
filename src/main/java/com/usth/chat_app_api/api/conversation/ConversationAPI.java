@@ -19,8 +19,11 @@ public class ConversationAPI {
     @Autowired
     private ConversationService conversationService;
     @GetMapping("/getConversation/user")
-    public ResponseEntity<?> getConversations(@RequestParam Long userId) {
-        List<ConversationDTO> conversations = conversationService.getConversationsWithLastMessage(userId);
+    public ResponseEntity<?> getConversations(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        List<ConversationDTO> conversations = conversationService.getConversationsWithLastMessage(userId, page, size);
 
         if (conversations.isEmpty()) {
             Map<String, String> response = new HashMap<>();
