@@ -33,18 +33,13 @@ public class SecurityConfig {
         http.authorizeHttpRequests(request -> {
 
 //            request.requestMatchers("/api/v1/user-login/**").permitAll();
-            request.requestMatchers("/**").permitAll();
+//            request.requestMatchers("/**").permitAll();
 
             request.requestMatchers("/api/v1/user-info/register").permitAll();
             request.requestMatchers("/api/v1/user-info/confirm-account").permitAll();
             request.requestMatchers("/api/v1/user-info/login").permitAll();
+            request.requestMatchers("/api/v1/chat/**").permitAll();
 //            request.requestMatchers("/*").permitAll();
-
-//            request.requestMatchers("/api/v1/user-info/**").permitAll();
-//            request.requestMatchers("/*").permitAll();
-            request.requestMatchers("/api/v1/user-info/register").permitAll();
-            request.requestMatchers("/api/v1/user-info/confirm-account").permitAll();
-            request.requestMatchers("/api/v1/user-info/login").permitAll();
             request.anyRequest().authenticated();
         });
 
@@ -57,7 +52,7 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable);
         //
 //        huy mới tắt tạm cái jwt để test endpoint
-//        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         // logout
         http.logout((logout) -> logout.logoutUrl("/api/v1/user-info/logout")
@@ -93,7 +88,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://10.0.2.2:8081", "ws://10.0.2.2:8081/talkie/api/v1/chat","ws://10.0.2.2:8081", "http://localhost:8081"));
 //        huy mới theem dòng dưới ể test
-        configuration.setAllowedOrigins(List.of("http://localhost:8080"));
+//        configuration.setAllowedOrigins(List.of("http://localhost:8080"));
         configuration.setAllowedMethods(List.of("GET","POST"));
         // allow all header
         configuration.setAllowedHeaders(List.of("*"));

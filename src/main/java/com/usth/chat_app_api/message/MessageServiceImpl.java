@@ -10,6 +10,9 @@ import com.usth.chat_app_api.user_info.UserInfo;
 import com.usth.chat_app_api.user_info.UserInfoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -95,6 +98,12 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public Page<Message> findByConversation(Long conversationId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return messageRepository.findByConversation(conversationId, pageable);
+    }
+
+    @Override
     public void deleteByConversation(Optional<Conversation> conversation) {
         messageRepository.deleteByConversation(conversation);
     }
@@ -125,4 +134,8 @@ public class MessageServiceImpl implements MessageService {
         return messageRepository.findMessageByConversationAndId(conversationRepository.findById(conversationId),messageId);
     }
 
+    public Page<Message> findLatestMessageByConversation(int pageSize, int pageNumber, Long userId) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return messageRepository.findLatestMessageByConversation(userId, pageable);
+    }
 }

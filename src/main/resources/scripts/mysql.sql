@@ -44,12 +44,13 @@ CREATE TABLE user_info(
                           first_name VARCHAR(100),
                           last_name VARCHAR(100),
                           phone_number VARCHAR(10) UNIQUE,
-                          sex BOOL,
+                          sex ENUM('MALE', 'FEMALE', 'OTHERS'),
                           status BOOL DEFAULT FALSE,
                           profile_picture VARCHAR(500),
                           create_at TIMESTAMP,
                           update_at TIMESTAMP,
                           role ENUM( 'USER', 'ADMIN'),
+                          dob DATE,
                           PRIMARY KEY (id)
 );
 

@@ -3,6 +3,8 @@ package com.usth.chat_app_api.message;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Getter
 @Setter
@@ -12,6 +14,7 @@ public class MessageDTO {
     private Long userId;
     private Long conversationId;
     private String content;
+    private LocalDateTime messageTime;
 //    private MessageType type;
 //
 //
@@ -21,9 +24,10 @@ public class MessageDTO {
 //        LEAVE
 //    }
 
-    public MessageDTO(Long userId, Long conversationId, String content) {
+    public MessageDTO(Long userId, Long conversationId, String content, LocalDateTime messageTime) {
         this.userId = userId;
         this.conversationId = conversationId;
         this.content = content;
+        this.messageTime = messageTime;
     }
 }
