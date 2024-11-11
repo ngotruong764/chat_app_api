@@ -8,6 +8,7 @@ import com.usth.chat_app_api.user_info.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -86,6 +87,12 @@ public class MyHandler extends TextWebSocketHandler {
 
         session.sendMessage(new TextMessage("Server confirm: " + messageDTO.getContent()));
     }
+
+    @Override
+    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) {
+
+    }
+
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {

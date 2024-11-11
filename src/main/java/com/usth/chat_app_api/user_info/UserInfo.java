@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.user_info;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.usth.chat_app_api.conversation.Conversation;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -51,6 +52,7 @@ public class UserInfo implements UserDetails {
     @Column(name = "role")
     private Enum role;
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Conversation> conversations;
 
     public Long getId() {
