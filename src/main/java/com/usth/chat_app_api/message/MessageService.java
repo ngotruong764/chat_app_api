@@ -4,12 +4,13 @@ import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.user_info.UserInfo;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface MessageService {
 
-    Message sendMessage(Long userId, Long conversationId, String content);
+    Message sendMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime);
 
     Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation);
 

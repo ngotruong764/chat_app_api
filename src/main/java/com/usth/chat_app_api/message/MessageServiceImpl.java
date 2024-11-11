@@ -42,7 +42,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional
-    public Message sendMessage(Long userId, Long conversationId, String content) {
+    public Message sendMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime) {
         UserInfo sender = userInfoRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -52,7 +52,8 @@ public class MessageServiceImpl implements MessageService {
         Message message = new Message();
         message.setCreatorId(sender);
         message.setContent(content);
-        message.setCreatedAt(LocalDateTime.now());
+//        message.setCreatedAt(LocalDateTime.now());
+        message.setCreatedAt(messageTime);
         message.setConversation(conversation);
 
         Message savedMessage = messageRepository.save(message);

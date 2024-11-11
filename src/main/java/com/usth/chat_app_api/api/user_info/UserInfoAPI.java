@@ -37,6 +37,11 @@ public class UserInfoAPI {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @GetMapping("/test")
+    public String testDeploy(){
+        return "It works";
+    }
+
     @PostMapping(value = "/register")
     public ResponseEntity<UserInfoResponse> registerUser(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();

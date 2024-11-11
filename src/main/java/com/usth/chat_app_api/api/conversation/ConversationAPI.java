@@ -121,13 +121,14 @@ public class ConversationAPI {
             // get params
             int pageSize = request.pageSize;
             int pageNumber = request.pageNumber;
-            // get 20 latest messages of an user
-            Page<Message> latestMessagesPage = messageService.findLatestMessageByConversation(pageSize, pageNumber, userId);
-            // get latest message list
-            List<Message> latestMessageList = latestMessagesPage.getContent();
-            // convert list message to list dto
-            List<ConversationDTO> conversationDTOList = ConversationMapper.messageToConversationDTO(latestMessageList);
-            response.setConversationDTOList(conversationDTOList);
+//            // get 20 latest messages of an user
+//            Page<Message> latestMessagesPage = messageService.findLatestMessageByConversation(pageSize, pageNumber, userId);
+//            // get latest message list
+//            List<Message> latestMessageList = latestMessagesPage.getContent();
+//            // convert list message to list dto
+//            List<ConversationDTO> conversationDTOList = ConversationMapper.messageToConversationDTO(latestMessageList);
+            List<ConversationDTO> conversations = conversationService.getConversationsWithLastMessage(userId, pageNumber, pageSize);
+            response.setConversationDTOList(conversations);
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK).body(response);

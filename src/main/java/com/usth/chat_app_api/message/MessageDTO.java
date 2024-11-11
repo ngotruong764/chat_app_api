@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class MessageDTO {
+    private Long id; // message id
     private Long userId;
     private Long conversationId;
     private String content;
@@ -23,6 +24,14 @@ public class MessageDTO {
 //        JOIN,
 //        LEAVE
 //    }
+
+    public MessageDTO(Long id,Long userId, Long conversationId, String content, LocalDateTime messageTime) {
+        this.id = id;
+        this.userId = userId;
+        this.conversationId = conversationId;
+        this.content = content;
+        this.messageTime = messageTime;
+    }
 
     public MessageDTO(Long userId, Long conversationId, String content, LocalDateTime messageTime) {
         this.userId = userId;

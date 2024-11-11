@@ -1,6 +1,9 @@
 package com.usth.chat_app_api.config_websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.usth.chat_app_api.message.Message;
 import com.usth.chat_app_api.message.MessageDTO;
 import com.usth.chat_app_api.message.MessageService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
@@ -16,6 +19,9 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -38,18 +44,95 @@ public class MyHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+//    @Override
+//    public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+//        // register module for objectMapper
+//        objectMapper.registerModule(new JavaTimeModule());
+//
+//        MessageDTO messageDTO = objectMapper.readValue(message.getPayload(), MessageDTO.class);
+//
+//        Long userId = messageDTO.getUserId();
+//
+////        messageService.sendMessage(userId, messageDTO.getConversationId(), messageDTO.getContent());
+//
+//        List<UserInfo> participants = messageService.getParticipantsByConversationId(messageDTO.getConversationId());
+//
+//        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+//
+//        for (UserInfo participant : participants) {
+//            if (!participant.getId().equals(userId)) {
+//                List<WebSocketSession> participantSessions = sessionManager.getSessions(participant.getId());
+//
+//                if (participantSessions != null) {
+//                    for (WebSocketSession participantSession : participantSessions) {
+//                        if (participantSession != null && participantSession.isOpen()) {
+//                            UserInfo sender = userInfoService.findUserInforById(userId);
+//
+//                            if (sender != null) {
+//                                String senderName = sender.getFirstName() + " " + sender.getLastName();
+//
+//                                Map<String, String> messageData = new HashMap<>();
+//                                messageData.put("sender", senderName);
+//                                messageData.put("content", messageDTO.getContent());
+//                                messageData.put("timestamp", timestamp);
+//
+//                                String messageJson = objectMapper.writeValueAsString(messageData);
+//
+//                                participantSession.sendMessage(new TextMessage(messageJson));
+//
+//                                log.info("Message sent to participant: " + participant.getId());
+//                            } else {
+//                                log.error("Sender with userId " + userId + " not found in database.");
+//                            }
+//                        } else {
+//                            sessionManager.removeSession(participant.getId(), participantSession);
+//                            log.info("Removed closed session for participant: " + participant.getId());
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+////        session.sendMessage(new TextMessage("Server confirm: " + messageDTO.getContent()));
+////        session.sendMessage(new TextMessage(messageJson));
+//    }
+
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+        // register module for objectMapper
+        objectMapper.registerModule(new JavaTimeModule());
 
         MessageDTO messageDTO = objectMapper.readValue(message.getPayload(), MessageDTO.class);
 
+        // get params
         Long userId = messageDTO.getUserId();
+        LocalDateTime messageTime = messageDTO.getMessageTime() == null ?
+                LocalDateTime.now() : messageDTO.getMessageTime();
 
-        messageService.sendMessage(userId, messageDTO.getConversationId(), messageDTO.getContent());
+        // save message into DB
+        Message savedMessage = messageService.sendMessage(userId, messageDTO.getConversationId(), messageDTO.getContent(), messageTime);
+
+        // find UserInfo
+        UserInfo sender = userInfoService.findUserInforById(userId);
+        // prepare message to send
+        String messageJson = null;
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date.from(messageTime.atZone(ZoneId.systemDefault()).toInstant()));
+        if (sender != null) {
+            String senderName = sender.getFirstName() + " " + sender.getLastName();
+
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("id", savedMessage.getId());
+            objectNode.put("userId", userId);
+            objectNode.put("senderName", senderName);
+            objectNode.put("conversationId", messageDTO.getConversationId());
+            objectNode.put("content", messageDTO.getContent());
+            objectNode.put("messageTime", timestamp);
+
+            messageJson = objectMapper.writeValueAsString(objectNode);
+        }
 
         List<UserInfo> participants = messageService.getParticipantsByConversationId(messageDTO.getConversationId());
 
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 
         for (UserInfo participant : participants) {
             if (!participant.getId().equals(userId)) {
@@ -58,20 +141,9 @@ public class MyHandler extends TextWebSocketHandler {
                 if (participantSessions != null) {
                     for (WebSocketSession participantSession : participantSessions) {
                         if (participantSession != null && participantSession.isOpen()) {
-                            UserInfo sender = userInfoService.findUserInforById(userId);
-
-                            if (sender != null) {
-                                String senderName = sender.getFirstName() + " " + sender.getLastName();
-
-                                Map<String, String> messageData = new HashMap<>();
-                                messageData.put("sender", senderName);
-                                messageData.put("content", messageDTO.getContent());
-                                messageData.put("timestamp", timestamp);
-
-                                String messageJson = objectMapper.writeValueAsString(messageData);
-
+                            if (messageJson != null) {
+                                // send message
                                 participantSession.sendMessage(new TextMessage(messageJson));
-
                                 log.info("Message sent to participant: " + participant.getId());
                             } else {
                                 log.error("Sender with userId " + userId + " not found in database.");
@@ -85,7 +157,8 @@ public class MyHandler extends TextWebSocketHandler {
             }
         }
 
-        session.sendMessage(new TextMessage("Server confirm: " + messageDTO.getContent()));
+//        assert messageJson != null;
+//        session.sendMessage(new TextMessage(messageJson));
     }
 
     @Override
