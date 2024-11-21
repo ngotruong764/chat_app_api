@@ -7,6 +7,8 @@ public class UserInfoRequest {
     private UserInfo userInfo;
     private String verificationCode;
 
+    public String base64;
+
     public UserInfo getUserInfo() {
         return userInfo;
     }

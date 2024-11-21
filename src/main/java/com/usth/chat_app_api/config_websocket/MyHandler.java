@@ -8,6 +8,7 @@ import com.usth.chat_app_api.message.MessageDTO;
 import com.usth.chat_app_api.message.MessageService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
 import com.usth.chat_app_api.user_info.UserInfo;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
@@ -29,7 +31,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class MyHandler extends TextWebSocketHandler {
+public class MyHandler extends AbstractWebSocketHandler {
 
     @Autowired
     private MessageService messageService;
@@ -161,11 +163,13 @@ public class MyHandler extends TextWebSocketHandler {
 //        session.sendMessage(new TextMessage(messageJson));
     }
 
+    // Handle BinaryMessage
     @Override
-    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) {
+    protected void handleBinaryMessage(@NonNull WebSocketSession session,@NonNull BinaryMessage message) throws Exception {
+        System.out.println("Handler Binary message");
+        System.out.println(message.getPayload());
 
     }
-
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {

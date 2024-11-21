@@ -1,5 +1,7 @@
 package com.usth.chat_app_api.api.message;
 
+import com.usth.chat_app_api.api.user_info.UserInfoRequest;
+import com.usth.chat_app_api.aws.IAwsService;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.conversation.ConversationService;
 import com.usth.chat_app_api.message.Message;
@@ -13,12 +15,14 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/")
+@RequestMapping("/api/v1/message")
 public class MessageApi {
     @Autowired
     private MessageService messageService;
     @Autowired
     private ConversationService conversationService;
+    @Autowired
+    private IAwsService awsService;
     @GetMapping("/messages/conversation")
     public ResponseEntity<List<Object[]>> getAllMessage(@RequestParam Long conversationId) {
         Conversation conversation = conversationService.findById(conversationId);
@@ -40,5 +44,17 @@ public class MessageApi {
         response.put("creatorName", message.getCreatorId().getFirstName());
         response.put("createdAt", message.getCreatedAt());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/test_put_s3")
+    public void testPutS3(@RequestBody UserInfoRequest request) throws Exception {
+        System.out.println("In test");
+        String base64 = request.base64;
+        String bucketName = "first-s3-bucket-nqt";
+        String key = "ba12-18/img7.png";
+        Long contentLength = 1L;
+        String contentType = "";
+        boolean isUploaded = awsService.uploadObject(bucketName, key, contentLength, contentType, base64);
+        System.out.println(isUploaded);
     }
 }

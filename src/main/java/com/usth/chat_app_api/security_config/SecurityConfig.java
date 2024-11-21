@@ -40,7 +40,7 @@ public class SecurityConfig {
             request.requestMatchers("/api/v1/user-info/confirm-account").permitAll();
             request.requestMatchers("/api/v1/user-info/login").permitAll();
             request.requestMatchers("/api/v1/chat/**").permitAll();
-//            request.requestMatchers("/*").permitAll();
+            request.requestMatchers("/**").permitAll();
             request.anyRequest().authenticated();
         });
 
