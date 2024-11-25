@@ -27,6 +27,7 @@ public class MessageRecipient {
     @Column(name = "is_read", nullable = false)
     private Boolean isRead;
 
+
     public MessageRecipient() {
     }
 

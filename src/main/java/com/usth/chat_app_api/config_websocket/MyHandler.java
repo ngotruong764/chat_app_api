@@ -17,13 +17,11 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -108,17 +106,20 @@ public class MyHandler extends AbstractWebSocketHandler {
 
         // get params
         Long userId = messageDTO.getUserId();
+        List<String> attachments = messageDTO.getAttachments();
         LocalDateTime messageTime = messageDTO.getMessageTime() == null ?
                 LocalDateTime.now() : messageDTO.getMessageTime();
 
         // save message into DB
-        Message savedMessage = messageService.sendMessage(userId, messageDTO.getConversationId(), messageDTO.getContent(), messageTime);
+        Message savedMessage = messageService.sendMessage(userId, messageDTO.getConversationId(), messageDTO.getContent(), messageTime, attachments);
 
         // find UserInfo
         UserInfo sender = userInfoService.findUserInforById(userId);
         // prepare message to send
         String messageJson = null;
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date.from(messageTime.atZone(ZoneId.systemDefault()).toInstant()));
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                .format(Date.from(messageTime.atZone(ZoneId.systemDefault()).toInstant()));
+
         if (sender != null) {
             String senderName = sender.getFirstName() + " " + sender.getLastName();
 
@@ -129,6 +130,11 @@ public class MyHandler extends AbstractWebSocketHandler {
             objectNode.put("conversationId", messageDTO.getConversationId());
             objectNode.put("content", messageDTO.getContent());
             objectNode.put("messageTime", timestamp);
+
+            // Nếu có attachments, thêm chúng vào JSON
+            if (attachments != null && !attachments.isEmpty()) {
+                objectNode.putPOJO("attachments", attachments);
+            }
 
             messageJson = objectMapper.writeValueAsString(objectNode);
         }

@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class AwsConfig {
     // Inject access key from application.properties
     @Value("${amazon.s3.access-key}")
+
     private String accessKey;
 
     // Inject secret key from application.properties

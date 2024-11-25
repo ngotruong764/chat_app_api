@@ -1,5 +1,7 @@
 package com.usth.chat_app_api.message;
 
+import com.usth.chat_app_api.attachment.Attachment;
+import com.usth.chat_app_api.attachment.AttachmentRepository;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.conversation.ConversationRepository;
 import com.usth.chat_app_api.conversation_participant.ConversationParticipant;
@@ -38,27 +40,37 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     private ConversationParticipantRepository conversationParticipantRepository;
 
+    @Autowired
+    private AttachmentRepository attachmentRepository;
+
 
 
     @Override
     @Transactional
-    public Message sendMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime) {
+    public Message sendMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime, List<String> attachments) {
         UserInfo sender = userInfoRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new RuntimeException("Conversation not found"));
-
         Message message = new Message();
         message.setCreatorId(sender);
         message.setContent(content);
-//        message.setCreatedAt(LocalDateTime.now());
         message.setCreatedAt(messageTime);
         message.setConversation(conversation);
 
         Message savedMessage = messageRepository.save(message);
 
+        if (attachments != null && !attachments.isEmpty()) {
+            for (String attachmentUrl : attachments) {
+                Attachment attachment = new Attachment();
+                attachment.setFileUrl(attachmentUrl);
+                attachment.setFileType("image");
+                attachment.setFileName(attachmentUrl.substring(attachmentUrl.lastIndexOf("/") + 1));
+                attachment.setMessage(savedMessage);
 
+                attachmentRepository.save(attachment);
+            }
+        }
         List<ConversationParticipant> participants = conversationParticipantRepository.findByConversationId(conversationId);
         for (ConversationParticipant participant : participants) {
             if (!participant.getUser().getId().equals(userId)) {
@@ -69,6 +81,7 @@ public class MessageServiceImpl implements MessageService {
 
         return savedMessage;
     }
+
 
     @Override
     public Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation) {

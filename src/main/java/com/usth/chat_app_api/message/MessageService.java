@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface MessageService {
 
-    Message sendMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime);
+    Message sendMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime ,List<String> attachments);
 
     Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation);
 
