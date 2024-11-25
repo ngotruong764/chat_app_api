@@ -49,6 +49,7 @@ CREATE TABLE user_info(
                           profile_picture VARCHAR(500),
                           create_at TIMESTAMP,
                           update_at TIMESTAMP,
+                          device_token VARCHAR(1000),
                           role ENUM( 'USER', 'ADMIN'),
                           dob DATE,
                           PRIMARY KEY (id)

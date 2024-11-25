@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
-public class AwsServiceImpl implements IAwsService{
+public class AwsS3ServiceImpl implements IAwsS3Service {
     @Autowired
     private S3Client s3Client;
     @Override

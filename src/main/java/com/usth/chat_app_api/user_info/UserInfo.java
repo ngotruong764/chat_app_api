@@ -55,6 +55,9 @@ public class UserInfo implements UserDetails {
     @JsonIgnore
     private List<Conversation> conversations;
 
+    @Column(name = "device_token")
+    private String deviceToken;
+
     public Long getId() {
         return id;
     }
@@ -221,5 +224,13 @@ public class UserInfo implements UserDetails {
 
     public void setConversations(List<Conversation> conversations) {
         this.conversations = conversations;
+    }
+
+    public String getDeviceToken() {
+        return deviceToken;
+    }
+
+    public void setDeviceToken(String deviceToken) {
+        this.deviceToken = deviceToken;
     }
 }
