@@ -154,12 +154,39 @@ public class UserInfoAPI {
             System.out.println(jwtToken);
             // get user info
             UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            // if the authentication is true, we save the device_token
+            if(!userInfo.getDeviceToken().equals(user.getDeviceToken())){
+                user.setDeviceToken(userInfo.getDeviceToken());
+                userInfoService.saveUserInfo(user);
+            }
             response.setUserInfo(user);
             //
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
         } catch (Exception e) {
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
+                    .body(response);
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<UserInfoResponse> logout(){
+        UserInfoResponse response = new UserInfoResponse();
+        try{
+            UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            // delete device token
+            user.setDeviceToken(null);
+            userInfoService.saveUserInfo(user);
+            // clear context
+            SecurityContextHolder.clearContext();
+            response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
+            response.setResponseCode(HttpStatus.OK.value());
+            return ResponseEntity.status(HttpStatus.OK.value()).body(response);
+        } catch (Exception e){
+            log.info(e.getMessage());
             response.setResponseCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())

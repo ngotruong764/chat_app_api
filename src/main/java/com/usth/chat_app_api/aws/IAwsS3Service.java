@@ -1,6 +1,6 @@
 package com.usth.chat_app_api.aws;
 
-public interface IAwsService {
+public interface IAwsS3Service {
     /**
      * Method to upload file to an S3 bucket
      * @params
