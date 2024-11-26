@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.message;
 
+import com.usth.chat_app_api.attachment.Attachment;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.message_recipient.MessageRecipient;
 import com.usth.chat_app_api.user_info.UserInfo;
@@ -17,7 +18,7 @@ public class Message {
     @ManyToOne
     @JoinColumn(name = "creator_id", nullable = false)
     private UserInfo creatorId;
-    @Column(name = "content",nullable = false,columnDefinition = "TEXT")
+    @Column(name = "content",nullable = true,columnDefinition = "TEXT")
     private String content;
     @Column(name = "created_at",nullable = false)
     private LocalDateTime createdAt;
@@ -29,7 +30,13 @@ public class Message {
     @ManyToOne
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
-    public Message() {
+
+
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Attachment> attachments;
+
+    public Message(){
+
     }
 
     public Message(UserInfo creatorId, String content, LocalDateTime createdAt, Message parentMessage, Conversation conversation) {
@@ -96,5 +103,11 @@ public class Message {
         this.conversation = conversation;
     }
 
+    public List<Attachment> getAttachments() {
+        return attachments;
+    }
 
+    public void setAttachments(List<Attachment> attachments) {
+        this.attachments = attachments;
+    }
 }

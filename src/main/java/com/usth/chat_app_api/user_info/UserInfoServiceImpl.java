@@ -63,4 +63,5 @@ public class UserInfoServiceImpl implements IUserInfoService {
     public void deleteVerificationCode(String verificationCode) {
         repo.deleteVerificationCode(verificationCode);
     }
+
 }

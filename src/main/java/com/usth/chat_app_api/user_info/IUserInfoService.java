@@ -1,4 +1,5 @@
 package com.usth.chat_app_api.user_info;
+
 import java.util.Optional;
 
 public interface IUserInfoService {

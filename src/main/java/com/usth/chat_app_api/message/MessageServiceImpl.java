@@ -129,7 +129,10 @@ public class MessageServiceImpl implements MessageService {
         return messages.stream().map(message -> new Object[] {
                 message.getCreatorId().getFirstName(),
                 message.getCreatedAt(),
-                message.getContent()
+                message.getContent(),
+                message.getAttachments().stream()
+                        .map(Attachment::getFileUrl)
+                        .collect(Collectors.toList())
         }).collect(Collectors.toList());
     }
 

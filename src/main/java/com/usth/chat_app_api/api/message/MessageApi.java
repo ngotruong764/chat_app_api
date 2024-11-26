@@ -1,6 +1,5 @@
 package com.usth.chat_app_api.api.message;
 
-import com.usth.chat_app_api.api.user_info.UserInfoRequest;
 import com.usth.chat_app_api.aws.IAwsS3Service;
 import com.usth.chat_app_api.aws.IAwsSNSService;
 import com.usth.chat_app_api.conversation.Conversation;
@@ -26,7 +25,7 @@ public class MessageApi {
     private IAwsS3Service awsService;
     @Autowired
     private IAwsSNSService awsSNSService;
-    @GetMapping("/messages/conversation")
+    @GetMapping("/conversation")
     public ResponseEntity<List<Object[]>> getAllMessage(@RequestParam Long conversationId) {
         Conversation conversation = conversationService.findById(conversationId);
         List<Object[]> messages = messageService.getMessageByConversation(conversation);
