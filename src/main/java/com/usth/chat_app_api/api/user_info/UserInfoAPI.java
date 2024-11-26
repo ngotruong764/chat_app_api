@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -235,4 +236,21 @@ public class UserInfoAPI {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(response);
         }
     }
+    @GetMapping("/searchUsersByUsername")
+    public ResponseEntity<?> searchUsers(
+            @RequestParam String username,
+            @RequestParam Long currentUserId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            List<UserInfo> users = userInfoService.searchUsers(currentUserId, username, page, size);
+
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while searching for users: " + e.getMessage());
+        }
+    }
+
 }

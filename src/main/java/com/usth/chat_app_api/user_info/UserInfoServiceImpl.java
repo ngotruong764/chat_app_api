@@ -1,9 +1,12 @@
 package com.usth.chat_app_api.user_info;
 
+import com.usth.chat_app_api.conversation.ConversationRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -11,6 +14,8 @@ import java.util.Optional;
 public class UserInfoServiceImpl implements IUserInfoService {
     @Autowired
     private UserInfoRepository repo;
+    @Autowired
+    private ConversationRepository conversationRepository;
 
     @Override
     public UserInfo findUserInforById(Long id) {
@@ -62,6 +67,41 @@ public class UserInfoServiceImpl implements IUserInfoService {
     @Override
     public void deleteVerificationCode(String verificationCode) {
         repo.deleteVerificationCode(verificationCode);
+    }
+
+    @Override
+    public List<UserInfo> searchUsers(Long currentUserId, String query, int page, int size) {
+        List<Long> conversationIds = conversationRepository.findConversationIdsByUserId(currentUserId);
+        List<UserInfo> allUsers = repo.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
+        List<UserInfo> chattedUsers = new ArrayList<>();
+        List<UserInfo> sameConversationUsers = new ArrayList<>();
+        List<UserInfo> strangerUsers = new ArrayList<>();
+
+        for (UserInfo user : allUsers) {
+            if (user.getId().equals(currentUserId)) {
+                continue;
+            }
+            if (conversationIds.contains(user.getId())) {
+                sameConversationUsers.add(user);
+            } else if (repo.findUsersByConversations(conversationIds).contains(user)) {
+                chattedUsers.add(user);
+            } else {
+                strangerUsers.add(user);
+            }
+        }
+
+        List<UserInfo> sortedUsers = new ArrayList<>();
+        sortedUsers.addAll(chattedUsers);
+        sortedUsers.addAll(sameConversationUsers);
+        sortedUsers.addAll(strangerUsers);
+
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, sortedUsers.size());
+        if (startIndex > sortedUsers.size()) {
+            return new ArrayList<>();
+        }
+
+        return sortedUsers.subList(startIndex, endIndex);
     }
 
 }

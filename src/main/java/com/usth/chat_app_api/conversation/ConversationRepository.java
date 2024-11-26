@@ -17,4 +17,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     List<Conversation> findAllConversationsWithLastMessageByUserId(@Param("userId") Long userId);
     @Query("SELECT c FROM Conversation c JOIN c.participants p WHERE p.user.id = :userId")
     Page<Conversation> findAllByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT c.id FROM Conversation c JOIN c.participants p WHERE p.user.id = :userId")
+    List<Long> findConversationIdsByUserId(Long userId);
 }

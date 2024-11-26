@@ -2,6 +2,7 @@ package com.usth.chat_app_api.user_info;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.usth.chat_app_api.conversation.Conversation;
+import com.usth.chat_app_api.conversation_participant.ConversationParticipant;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -54,6 +55,9 @@ public class UserInfo implements UserDetails {
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Conversation> conversations;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ConversationParticipant> participants;
 
     @Column(name = "device_token")
     private String deviceToken;

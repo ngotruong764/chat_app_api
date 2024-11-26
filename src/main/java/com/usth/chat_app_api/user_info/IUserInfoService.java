@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.user_info;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface IUserInfoService {
@@ -16,4 +17,5 @@ public interface IUserInfoService {
 
     void deleteVerificationCode(String verificationCode);
 
+    public List<UserInfo> searchUsers(Long currentUserId, String query, int page, int size);
 }
