@@ -62,6 +62,9 @@ public class UserInfo implements UserDetails {
     @Column(name = "device_token")
     private String deviceToken;
 
+    @Transient
+    private String profilePicturePath;
+
     public Long getId() {
         return id;
     }
@@ -236,5 +239,13 @@ public class UserInfo implements UserDetails {
 
     public void setDeviceToken(String deviceToken) {
         this.deviceToken = deviceToken;
+    }
+
+    public String getProfilePicturePath() {
+        return profilePicturePath;
+    }
+
+    public void setProfilePicturePath(String profilePicturePath) {
+        this.profilePicturePath = profilePicturePath;
     }
 }

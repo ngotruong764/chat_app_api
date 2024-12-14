@@ -3,6 +3,7 @@ package com.usth.chat_app_api.config_websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.usth.chat_app_api.aws.IAwsSNSService;
 import com.usth.chat_app_api.message.Message;
 import com.usth.chat_app_api.message.MessageDTO;
 import com.usth.chat_app_api.message.MessageService;
@@ -26,6 +27,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
@@ -39,6 +41,9 @@ public class MyHandler extends AbstractWebSocketHandler {
 
     @Autowired
     private IUserInfoService userInfoService;
+
+    @Autowired
+    IAwsSNSService awsSNSService;
 
 
 
@@ -115,6 +120,8 @@ public class MyHandler extends AbstractWebSocketHandler {
 
         // find UserInfo
         UserInfo sender = userInfoService.findUserInforById(userId);
+        // push notification body
+        String pushNotificationBody = null;
         // prepare message to send
         String messageJson = null;
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -127,6 +134,7 @@ public class MyHandler extends AbstractWebSocketHandler {
             objectNode.put("id", savedMessage.getId());
             objectNode.put("userId", userId);
             objectNode.put("senderName", senderName);
+            objectNode.put("conversationName", messageDTO.getConversationName());
             objectNode.put("conversationId", messageDTO.getConversationId());
             objectNode.put("content", messageDTO.getContent());
             objectNode.put("messageTime", timestamp);
@@ -137,10 +145,17 @@ public class MyHandler extends AbstractWebSocketHandler {
             }
 
             messageJson = objectMapper.writeValueAsString(objectNode);
+
+            if(messageDTO.getContent() != null){
+                if(!messageDTO.getContent().isEmpty()){
+                    pushNotificationBody = sender.getUsername() + ": "+ messageDTO.getContent();
+                }
+            }
         }
 
-        List<UserInfo> participants = messageService.getParticipantsByConversationId(messageDTO.getConversationId());
+        final String finalPushNotificationBody = pushNotificationBody;
 
+        List<UserInfo> participants = messageService.getParticipantsByConversationId(messageDTO.getConversationId());
 
         for (UserInfo participant : participants) {
             if (!participant.getId().equals(userId)) {
@@ -152,6 +167,13 @@ public class MyHandler extends AbstractWebSocketHandler {
                             if (messageJson != null) {
                                 // send message
                                 participantSession.sendMessage(new TextMessage(messageJson));
+                                // push notification
+                                if(participant.getDeviceToken() != null ||
+                                        !participant.getDeviceToken().isEmpty() && finalPushNotificationBody != null){
+                                    CompletableFuture.runAsync(() ->
+                                            awsSNSService.publishNotification(participant.getDeviceToken(),messageDTO.getConversationName(),
+                                                    finalPushNotificationBody));
+                                }
                                 log.info("Message sent to participant: " + participant.getId());
                             } else {
                                 log.error("Sender with userId " + userId + " not found in database.");

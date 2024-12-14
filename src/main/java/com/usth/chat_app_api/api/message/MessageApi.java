@@ -63,6 +63,6 @@ public class MessageApi {
     @PostMapping("/test_put_s3")
     public void testPutS3() throws Exception {
         System.out.println("In test");
-        awsSNSService.publishNotification("e4PhFf6bQGGtcbzXolle54:APA91bFjyc_TolcH2fT51K6KYntJ3d1k3I1HuymmVujqR2AZH4Y94N7dIOBz--ibOi-FaARJJNI-vzxyx6XvKsnlryioLwThkrMcTv7bl-5nFDei9Pzeb9E", "title", "body");
+        awsSNSService.publishNotification("dn8GP5gxS3OTGbCEoV3m4S:APA91bHA4s1ZBQ_0vGYktnY6PcqU1lxsG3iU14bG-aLfm43IuidXhrL8L71uTDd5X1DwwHo02rkC6js7dZHuppw3fwmrH5oGQkobGkh2JWuhAhJIbjcEsJU", "title", "body");
     }
 }

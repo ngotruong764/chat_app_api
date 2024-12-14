@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.aws;
 
+import com.usth.chat_app_api.utils.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,9 +12,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -25,6 +24,9 @@ public class AwsS3ServiceImpl implements IAwsS3Service {
                               Long contentLength, String contentType, String base64) {
         try{
             byte[] bytes = Base64.getDecoder().decode(base64);
+            if(!Helper.isValidImg(bytes)){
+                return false;
+            }
             // create meta data
             Map<String, String> metadata = new HashMap<>();
             metadata.put("Content-Type", contentType);
@@ -46,12 +48,17 @@ public class AwsS3ServiceImpl implements IAwsS3Service {
 
     @Override
     public byte[] downLoadObject(String bucketName, String keyName) {
-        GetObjectRequest request = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(keyName)
-                .build();
-        ResponseBytes<GetObjectResponse> s3Object = s3Client.getObject(request, ResponseTransformer.toBytes());
-        return s3Object.asByteArray();
+        try{
+            GetObjectRequest request = GetObjectRequest.builder()
+                    .key(keyName)
+                    .bucket(bucketName)
+                    .build();
+            ResponseBytes<GetObjectResponse> s3Object = s3Client.getObject(request, ResponseTransformer.toBytes());
+            return s3Object.asByteArray();
+        } catch (Exception e){
+            log.info(e.getMessage());
+            return new byte[0]; // create fixed empty byte[]
+        }
     }
 
 //    @Override

@@ -1,10 +1,12 @@
 package com.usth.chat_app_api.api.user_info;
 
+import com.usth.chat_app_api.aws.IAwsS3Service;
 import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.jwt.JwtService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
 import com.usth.chat_app_api.user_info.UserInfo;
+import com.usth.chat_app_api.utils.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +40,8 @@ public class UserInfoAPI {
     private JavaMailSender javaMailSender;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private IAwsS3Service awsS3Service;
 
     @GetMapping("/test")
     public String testDeploy(){
@@ -156,11 +161,21 @@ public class UserInfoAPI {
             // get user info
             UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             // if the authentication is true, we save the device_token
-            if(!userInfo.getDeviceToken().equals(user.getDeviceToken())){
-                user.setDeviceToken(userInfo.getDeviceToken());
-                userInfoService.saveUserInfo(user);
+            if(user.getId() != null){
+                if(!userInfo.getDeviceToken().equals(user.getDeviceToken())){
+                    user.setDeviceToken(userInfo.getDeviceToken());
+                    userInfoService.saveUserInfo(user);
+                }
+                // get user avatar
+                byte[] userAvatar = awsS3Service.downLoadObject(ApplicationConstant.AWS_BUCKET_NAME, user.getProfilePicture());
+                user.setProfilePicture(null);
+                if(userAvatar.length > 0 && Helper.isValidImg(userAvatar)){
+                    // convert byte[] to base64
+                    String avatarBase64Encoded = Base64.getEncoder().encodeToString(userAvatar);
+                    user.setProfilePicture(avatarBase64Encoded);
+                }
+                response.setUserInfo(user);
             }
-            response.setUserInfo(user);
             //
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
@@ -221,11 +236,39 @@ public class UserInfoAPI {
     public ResponseEntity<?> updateUser(@RequestBody UserInfoRequest request){
         UserInfoResponse response = new UserInfoResponse();
         try{
+            UserInfo updatedUser;
             // get request
             UserInfo userInfo = request.getUserInfo();
-            // update user info
-            userInfoService.saveUserInfo(userInfo);
+            // if is a new user
+            if(userInfo.getId() == null){
+                // update user info
+                updatedUser = userInfoService.saveUserInfo(userInfo);
+            } else{
+                // get current user
+                UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                user.setFirstName(userInfo.getFirstName());
+                user.setLastName(userInfo.getLastName());
+                user.setUsername(userInfo.getUsername());
+                user.setEmail(userInfo.getEmail());
+                user.setPhoneNumber(userInfo.getPhoneNumber());
+                user.setSex(userInfo.getSex());
+                user.setUpdateAt(new Timestamp(System.currentTimeMillis()));
+
+                if(userInfo.getProfilePicture() != null && ApplicationConstant.AWS_BUCKET_NAME != null){
+                    // create key name for obj
+                    String keyName = "img/"+ user.getId() + "/" + userInfo.getProfilePicturePath();
+                    // upload img to aws bucket
+                    boolean isUpdated = awsS3Service.uploadObject(ApplicationConstant.AWS_BUCKET_NAME, keyName, 0L, "", userInfo.getProfilePicture());
+                    if(!isUpdated){
+                        throw new Exception("Cannot update user profile picture");
+                    }
+                    user.setProfilePicture(keyName);
+                }
+
+                updatedUser = userInfoService.saveUserInfo(user);
+            }
             //
+            response.setUserInfo(updatedUser);
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
