@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.attachment;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.usth.chat_app_api.message.Message;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,10 +24,13 @@ public class Attachment {
     private String fileName;
 
     @ManyToOne(fetch = FetchType.LAZY)
+//    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "message_id", nullable = false)
+    @JsonIgnore()
     private Message message;
 
-
+    @Transient
+    private String attachmentContent;
 
     public Attachment() {}
 
@@ -58,4 +62,11 @@ public class Attachment {
         this.message = message;
     }
 
+    public String getAttachmentContent() {
+        return attachmentContent;
+    }
+
+    public void setAttachmentContent(String attachmentContent) {
+        this.attachmentContent = attachmentContent;
+    }
 }

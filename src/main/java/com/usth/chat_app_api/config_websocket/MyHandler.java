@@ -3,6 +3,7 @@ package com.usth.chat_app_api.config_websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.usth.chat_app_api.attachment.Attachment;
 import com.usth.chat_app_api.aws.IAwsSNSService;
 import com.usth.chat_app_api.message.Message;
 import com.usth.chat_app_api.message.MessageDTO;
@@ -111,17 +112,19 @@ public class MyHandler extends AbstractWebSocketHandler {
 
         // get params
         Long userId = messageDTO.getUserId();
-        List<String> attachments = messageDTO.getAttachments();
+        List<Attachment> attachments = messageDTO.getAttachments();
         LocalDateTime messageTime = messageDTO.getMessageTime() == null ?
                 LocalDateTime.now() : messageDTO.getMessageTime();
 
         // save message into DB
-        Message savedMessage = messageService.sendMessage(userId, messageDTO.getConversationId(), messageDTO.getContent(), messageTime, attachments);
+        Message savedMessage = messageService.saveMessage(userId, messageDTO.getConversationId(), messageDTO.getContent(), messageTime, attachments);
 
         // find UserInfo
         UserInfo sender = userInfoService.findUserInforById(userId);
+
         // push notification body
         String pushNotificationBody = null;
+
         // prepare message to send
         String messageJson = null;
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -138,11 +141,12 @@ public class MyHandler extends AbstractWebSocketHandler {
             objectNode.put("conversationId", messageDTO.getConversationId());
             objectNode.put("content", messageDTO.getContent());
             objectNode.put("messageTime", timestamp);
+            objectNode.putPOJO("attachments", attachments);
 
-            // Nếu có attachments, thêm chúng vào JSON
-            if (attachments != null && !attachments.isEmpty()) {
-                objectNode.putPOJO("attachments", attachments);
-            }
+//            // Nếu có attachments, thêm chúng vào JSON
+//            if (attachments != null && !attachments.isEmpty()) {
+//                objectNode.putPOJO("attachments", attachments);
+//            }
 
             messageJson = objectMapper.writeValueAsString(objectNode);
 
@@ -233,7 +237,7 @@ public class MyHandler extends AbstractWebSocketHandler {
 
         if (userId != null) {
             sessionManager.removeSession(userId, session);
-            log.info("Session closed and removed for userId: " + userId);
+            log.info("Session closed and removed for userId: {} - Because: {}", userId, status.getReason());
         } else {
             log.warn("Failed to remove session: userId not found for session " + session.getId());
         }

@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.message;
 
+import com.usth.chat_app_api.attachment.Attachment;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.user_info.UserInfo;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,8 @@ import java.util.Optional;
 public interface MessageService {
 
     Message sendMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime ,List<String> attachments);
+
+    Message saveMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime ,List<Attachment> attachments);
 
     Optional<Message> findFirstByConversationOrderByCreatedAtDesc(Conversation conversation);
 

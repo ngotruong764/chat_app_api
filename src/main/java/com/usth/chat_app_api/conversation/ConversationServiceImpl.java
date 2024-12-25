@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.conversation;
 
+import com.usth.chat_app_api.attachment.AttachmentService;
 import com.usth.chat_app_api.conversation_participant.ConversationParticipant;
 import com.usth.chat_app_api.conversation_participant.ConversationParticipantService;
 import com.usth.chat_app_api.message.Message;
@@ -35,9 +36,13 @@ public class ConversationServiceImpl implements ConversationService {
     private MessageRecipientService messageRecipientService;
     @Autowired
     private IUserInfoService iUserInfoService;
+    @Autowired
+    private AttachmentService attachmentService;
     @Override
     public List<ConversationDTO> getConversationsWithLastMessage(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
+
+        // find all conversations by userId that current user participate in
         Page<Conversation> conversationPage = conversationRepository.findAllByUserId(userId, pageable);
         List<Conversation> conversations = conversationPage.getContent();
         List<ConversationDTO> conversationDTOs = new ArrayList<>();
@@ -45,11 +50,41 @@ public class ConversationServiceImpl implements ConversationService {
         for (Conversation conversation : conversations) {
             Optional<Message> lastMessageOptional = messageService.findFirstByConversationOrderByCreatedAtDesc(conversation);
             Message lastMessage = lastMessageOptional.orElse(null);
+
+            String lastMessageContent = "No messages yet";
+            lastMessageContent = lastMessage != null ? lastMessage.getContent() : lastMessageContent;
+
+            // find number of Attachment in a Message by MessageId
+            int attachmentCount = 0;
+            if(lastMessage != null){
+                attachmentCount = attachmentService.sumAttachmentByMessageId(lastMessage.getId()).orElse(0);
+
+            }
+            if(attachmentCount == 1){
+                lastMessageContent = "Send an attachment";
+            } else if (attachmentCount > 1){
+                lastMessageContent = "Send attachments";
+            }
+
+
+
+            // find the user has the last message
+            Long lastMessageUserId = 0L;
+            String lastMessageUserName = "";
+            if(lastMessage != null){
+                UserInfo lastMessageUser = lastMessage.getCreatorId();
+                lastMessageUserId = lastMessageUser.getId();
+                lastMessageUserName = lastMessageUser.getUsername();
+            }
+
+            // get all name of user that participate in this conversation
             List<String> participantNames = conversation.getParticipants().stream()
                     .map(ConversationParticipant::getUser)
                     .filter(user -> !user.getId().equals(userId))
                     .map(UserInfo::getFirstName)
                     .collect(Collectors.toList());
+
+            // set conversation name
             String conversationName;
             if (conversation.getName() != null && !conversation.getName().isEmpty()) {
                 conversationName = conversation.getName();
@@ -60,11 +95,14 @@ public class ConversationServiceImpl implements ConversationService {
                     conversationName = String.join(", ", participantNames);
                 }
             }
+
             ConversationDTO dto = new ConversationDTO();
             dto.setConversationId(conversation.getId());
             dto.setConversationName(conversationName);
-            dto.setLastMessage(lastMessage != null ? lastMessage.getContent() : "No messages yet");
+            dto.setLastMessage(lastMessageContent);
             dto.setLastMessageTime(lastMessage != null ? lastMessage.getCreatedAt() : null);
+            dto.setUserLastMessageId(lastMessageUserId);
+            dto.setUserLastMessageName(lastMessageUserName);
 
             conversationDTOs.add(dto);
         }

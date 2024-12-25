@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.message;
 
+import com.usth.chat_app_api.attachment.Attachment;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -17,7 +18,8 @@ public class MessageDTO {
     private String conversationName;
     private String content;
     private LocalDateTime messageTime;
-    private List<String> attachments = List.of();
+//    private List<String> attachments = List.of();
+    private List<Attachment> attachments = List.of();
 
     public MessageDTO(Long userId, Long conversationId, String content, LocalDateTime messageTime) {
         this.userId = userId;
@@ -27,7 +29,7 @@ public class MessageDTO {
         this.attachments = List.of();
     }
 
-    public MessageDTO(Long userId, Long conversationId, String content, LocalDateTime messageTime, List<String> attachments) {
+    public MessageDTO(Long userId, Long conversationId, String content, LocalDateTime messageTime, List<Attachment> attachments) {
         this.userId = userId;
         this.conversationId = conversationId;
         this.content = content;
@@ -42,5 +44,14 @@ public class MessageDTO {
         this.conversationName = conversationName;
         this.content = content;
         this.messageTime = messageTime;
+    }
+
+    public MessageDTO(Long id, Long userId, Long conversationId, String content, LocalDateTime messageTime, List<Attachment> attachments) {
+        this.id = id;
+        this.userId = userId;
+        this.conversationId = conversationId;
+        this.content = content;
+        this.messageTime = messageTime;
+        this.attachments = attachments;
     }
 }

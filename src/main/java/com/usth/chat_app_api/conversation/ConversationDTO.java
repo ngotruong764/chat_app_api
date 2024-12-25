@@ -17,4 +17,13 @@ public class ConversationDTO {
     private String conversationName;
     private String lastMessage;
     private LocalDateTime lastMessageTime;
+    private Long userLastMessageId;
+    private String userLastMessageName;
+
+    public ConversationDTO(Long conversationId, String conversationName, String lastMessage, LocalDateTime lastMessageTime) {
+        this.conversationId = conversationId;
+        this.conversationName = conversationName;
+        this.lastMessage = lastMessage;
+        this.lastMessageTime = lastMessageTime;
+    }
 }

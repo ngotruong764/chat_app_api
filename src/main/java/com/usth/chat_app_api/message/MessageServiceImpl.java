@@ -2,6 +2,8 @@ package com.usth.chat_app_api.message;
 
 import com.usth.chat_app_api.attachment.Attachment;
 import com.usth.chat_app_api.attachment.AttachmentRepository;
+import com.usth.chat_app_api.aws.IAwsS3Service;
+import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.conversation.ConversationRepository;
 import com.usth.chat_app_api.conversation_participant.ConversationParticipant;
@@ -11,6 +13,7 @@ import com.usth.chat_app_api.message_recipient.MessageRecipientRepository;
 import com.usth.chat_app_api.user_info.UserInfo;
 import com.usth.chat_app_api.user_info.UserInfoRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class MessageServiceImpl implements MessageService {
 
     @Autowired
@@ -42,6 +46,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Autowired
     private AttachmentRepository attachmentRepository;
+
+    @Autowired
+    private IAwsS3Service awsS3Service;
 
 
 
@@ -79,6 +86,46 @@ public class MessageServiceImpl implements MessageService {
             }
         }
 
+        return savedMessage;
+    }
+
+    @Override
+    @Transactional
+    public Message saveMessage(Long userId, Long conversationId, String content, LocalDateTime messageTime, List<Attachment> attachments) {
+        Message savedMessage = null;
+        try {
+            UserInfo sender = userInfoRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            Conversation conversation = conversationRepository.findById(conversationId)
+                    .orElseThrow(() -> new RuntimeException("Conversation not found"));
+            Message message = new Message();
+            message.setCreatorId(sender);
+            message.setContent(content);
+            message.setCreatedAt(messageTime);
+            message.setConversation(conversation);
+
+            savedMessage = messageRepository.save(message);
+
+            if (attachments != null && !attachments.isEmpty()) {
+                for (Attachment attachment : attachments) {
+                    attachment.setMessage(savedMessage);
+
+                    // save attachment to AWS S3
+                    awsS3Service.uploadObject(ApplicationConstant.AWS_BUCKET_NAME, attachment.getFileUrl(), 0L, "", attachment.getAttachmentContent());
+                }
+                // save all attachment
+                attachmentRepository.saveAllAndFlush(attachments);
+            }
+            List<ConversationParticipant> participants = conversationParticipantRepository.findByConversationId(conversationId);
+            for (ConversationParticipant participant : participants) {
+                if (!participant.getUser().getId().equals(userId)) {
+                    MessageRecipient messageRecipient = new MessageRecipient(participant.getUser(), savedMessage);
+                    messageRecipientRepository.save(messageRecipient);
+                }
+            }
+        } catch (Exception e){
+            log.info("Save message fail: {}", e.getMessage());
+        }
         return savedMessage;
     }
 

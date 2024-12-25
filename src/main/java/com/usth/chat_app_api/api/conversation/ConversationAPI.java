@@ -1,5 +1,9 @@
 package com.usth.chat_app_api.api.conversation;
 
+import com.usth.chat_app_api.attachment.Attachment;
+import com.usth.chat_app_api.attachment.AttachmentService;
+import com.usth.chat_app_api.aws.IAwsS3Service;
+import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.conversation.ConversationDTO;
 import com.usth.chat_app_api.conversation.ConversationService;
@@ -20,9 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/conservation")
@@ -34,6 +37,11 @@ public class ConversationAPI {
     private IUserInfoService userInfoService;
     @Autowired
     private MessageService messageService;
+    @Autowired
+    private AttachmentService attachmentService;
+    @Autowired
+    private IAwsS3Service awsS3Service;
+
     @GetMapping("/getConversation/user")
     public ResponseEntity<?> getConversations(
             @RequestParam Long userId,
@@ -141,7 +149,7 @@ public class ConversationAPI {
     }
 
     /**
-     * fetch 40 messages of a conversation
+     * fetch 50 messages of a conversation
      */
     @PostMapping(value = "/fetchConversationMessage")
     public ResponseEntity<ConversationResponse> fetchConversationMessage(@RequestBody ConversationRequest request) {
@@ -153,10 +161,52 @@ public class ConversationAPI {
             int pageSize = request.pageSize; // 40 messages
             int pageNumber = request.pageNumber;
             Long conversationId = request.conversationId;
+
+            // Find list of message
             Page<Message> conversationMessages = messageService.findByConversation(conversationId, pageNumber, pageSize);
+
+            // find attachment by message_id
+            Map<Long, List<Attachment>> messageAttachmentMap = attachmentService.findAllByMessage(conversationMessages)
+                    .stream().collect(Collectors.groupingBy(attachment -> attachment.getMessage().getId()));
+
+            // set attachment to message
+            for (Message message : conversationMessages){
+                Long messageId = message.getId();
+                List<Attachment> attachmentList = messageAttachmentMap.getOrDefault(messageId, new ArrayList<>());
+
+                if(!attachmentList.isEmpty()){
+                    for(Attachment attachment : attachmentList){
+                        // get attachment content from AWS S3 by bucket and key
+                        byte[] attachmentContent = awsS3Service.downLoadObject(ApplicationConstant.AWS_BUCKET_NAME, attachment.getFileUrl());
+
+                        // convert byte to base64 encoded
+                        if(attachmentContent != null && attachmentContent.length > 0){
+                            // set base64 encoded content to Attachment
+                            String base64Data = Base64.getEncoder().encodeToString(attachmentContent);
+                            attachment.setAttachmentContent(base64Data);
+                        }
+                    }
+                }
+                // set attachment list to Message
+                message.setAttachments(attachmentList);
+            }
+
             // map message to message DTO
-            List<MessageDTO> messageDTOList = MessageMapper.messageEntityToMessageDTO(conversationMessages.getContent());
+            List<MessageDTO> messageDTOList = MessageMapper
+                    .messageEntityToMessageDTO(conversationMessages.getContent());
+
+            // sort message DTO list by messageTime in asc order
+            messageDTOList = messageDTOList.stream()
+                    .sorted(Comparator.comparing(MessageDTO::getMessageTime))
+                    .collect(Collectors.toList());
+
             // set response
+            // if is last page --> set to response
+            if (conversationMessages.isLast()){
+                response.setLastPage(true);
+            } else {
+                response.setLastPage(false);
+            }
             response.setMessageDTOList(messageDTOList);
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());

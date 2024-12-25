@@ -22,7 +22,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query(value = "select a from Message a "
         + "where a.conversation.id = :conversationId "
-        + "order by a.createdAt asc ")
+        + "order by a.createdAt desc ")
     Page<Message> findByConversation(
             @Param("conversationId") Long conversationI, Pageable pageable);
 
