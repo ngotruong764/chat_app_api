@@ -176,7 +176,7 @@ public class MyHandler extends AbstractWebSocketHandler {
                                         !participant.getDeviceToken().isEmpty() && finalPushNotificationBody != null){
                                     CompletableFuture.runAsync(() ->
                                             awsSNSService.publishNotification(participant.getDeviceToken(),messageDTO.getConversationName(),
-                                                    finalPushNotificationBody));
+                                                    finalPushNotificationBody, messageDTO.getConversationId()));
                                 }
                                 log.info("Message sent to participant: " + participant.getId());
                             } else {

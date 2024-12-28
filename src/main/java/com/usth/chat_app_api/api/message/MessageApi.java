@@ -60,9 +60,9 @@ public class MessageApi {
 //        System.out.println(isUploaded);
 //    }
 
-    @PostMapping("/test_put_s3")
-    public void testPutS3() throws Exception {
-        System.out.println("In test");
-        awsSNSService.publishNotification("dn8GP5gxS3OTGbCEoV3m4S:APA91bHA4s1ZBQ_0vGYktnY6PcqU1lxsG3iU14bG-aLfm43IuidXhrL8L71uTDd5X1DwwHo02rkC6js7dZHuppw3fwmrH5oGQkobGkh2JWuhAhJIbjcEsJU", "title", "body");
-    }
+//    @PostMapping("/test_put_s3")
+//    public void testPutS3() throws Exception {
+//        System.out.println("In test");
+//        awsSNSService.publishNotification("dn8GP5gxS3OTGbCEoV3m4S:APA91bHA4s1ZBQ_0vGYktnY6PcqU1lxsG3iU14bG-aLfm43IuidXhrL8L71uTDd5X1DwwHo02rkC6js7dZHuppw3fwmrH5oGQkobGkh2JWuhAhJIbjcEsJU", "title", "body");
+//    }
 }
