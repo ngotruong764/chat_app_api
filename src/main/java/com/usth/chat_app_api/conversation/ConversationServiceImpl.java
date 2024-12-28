@@ -1,6 +1,8 @@
 package com.usth.chat_app_api.conversation;
 
 import com.usth.chat_app_api.attachment.AttachmentService;
+import com.usth.chat_app_api.aws.IAwsS3Service;
+import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.conversation_participant.ConversationParticipant;
 import com.usth.chat_app_api.conversation_participant.ConversationParticipantService;
 import com.usth.chat_app_api.message.Message;
@@ -8,6 +10,7 @@ import com.usth.chat_app_api.message.MessageService;
 import com.usth.chat_app_api.message_recipient.MessageRecipientService;
 import com.usth.chat_app_api.user_info.IUserInfoService;
 import com.usth.chat_app_api.user_info.UserInfo;
+import com.usth.chat_app_api.utils.Helper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,9 +42,12 @@ public class ConversationServiceImpl implements ConversationService {
     private IUserInfoService iUserInfoService;
     @Autowired
     private AttachmentService attachmentService;
+    @Autowired
+    private IAwsS3Service awsS3Service;
     @Override
     public List<ConversationDTO> getConversationsWithLastMessage(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
+        String bucketName = ApplicationConstant.AWS_BUCKET_NAME;
 
         // find all conversations by userId that current user participate in
         Page<Conversation> conversationPage = conversationRepository.findAllByUserId(userId, pageable);
@@ -66,7 +73,28 @@ public class ConversationServiceImpl implements ConversationService {
                 lastMessageContent = "Send attachments";
             }
 
-
+            // if conversation is not group --> we get image of another person
+            String avatarBase64Encoded = "";
+            if(!conversation.getGroup()){
+                Optional<UserInfo> anotherUser = conversation.getParticipants().stream()
+                        .map(ConversationParticipant::getUser)
+                        .filter(user -> user.getId().equals(userId)).findFirst();
+                // if has person
+                if(anotherUser.isPresent()){
+                    // get user avatar path url
+                    String userAvatarKey = anotherUser.get().getProfilePicture();
+                    if(!userAvatarKey.isEmpty()){
+                        // download user avatar
+                        byte[] bytes = awsS3Service.downLoadObject(bucketName, userAvatarKey);
+                        // convert bytes to base64
+                        if(bytes.length > 0 && Helper.isValidImg(bytes)){
+                            anotherUser.get().setProfilePicture(null);
+                            // convert byte[] to base64
+                            avatarBase64Encoded = Base64.getEncoder().encodeToString(bytes);
+                        }
+                    }
+                }
+            }
 
             // find the user has the last message
             Long lastMessageUserId = 0L;
@@ -103,6 +131,9 @@ public class ConversationServiceImpl implements ConversationService {
             dto.setLastMessageTime(lastMessage != null ? lastMessage.getCreatedAt() : null);
             dto.setUserLastMessageId(lastMessageUserId);
             dto.setUserLastMessageName(lastMessageUserName);
+            if(!avatarBase64Encoded.isEmpty()){
+                dto.setConservationAvatar(avatarBase64Encoded);
+            }
 
             conversationDTOs.add(dto);
         }

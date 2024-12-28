@@ -136,6 +136,7 @@ public class ConversationAPI {
 //            // convert list message to list dto
 //            List<ConversationDTO> conversationDTOList = ConversationMapper.messageToConversationDTO(latestMessageList);
             List<ConversationDTO> conversations = conversationService.getConversationsWithLastMessage(userId, pageNumber, pageSize);
+
             response.setConversationDTOList(conversations);
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());

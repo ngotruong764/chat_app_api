@@ -196,6 +196,7 @@ public class UserInfoAPI {
             // delete device token
             user.setDeviceToken(null);
             userInfoService.saveUserInfo(user);
+            System.out.println("Logout");
             // clear context
             SecurityContextHolder.clearContext();
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
