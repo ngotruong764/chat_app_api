@@ -78,7 +78,7 @@ public class ConversationServiceImpl implements ConversationService {
             if(!conversation.getGroup()){
                 Optional<UserInfo> anotherUser = conversation.getParticipants().stream()
                         .map(ConversationParticipant::getUser)
-                        .filter(user -> user.getId().equals(userId)).findFirst();
+                        .filter(user -> !user.getId().equals(userId)).findAny();
                 // if has person
                 if(anotherUser.isPresent()){
                     // get user avatar path url
