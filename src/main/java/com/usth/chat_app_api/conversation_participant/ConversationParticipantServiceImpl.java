@@ -37,4 +37,9 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
     public void save(ConversationParticipant conversationParticipant) {
         conversationParticipantRepository.save(conversationParticipant);
     }
+
+    @Override
+    public Optional<ConversationParticipant> findCommonConversationOfTwoPerson(Long currentUserId, Long conversationPartnerId) {
+        return conversationParticipantRepository.findCommonConversationOfTwoPerson(currentUserId, conversationPartnerId);
+    }
 }

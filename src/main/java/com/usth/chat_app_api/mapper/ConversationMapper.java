@@ -1,5 +1,6 @@
 package com.usth.chat_app_api.mapper;
 
+import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.conversation.ConversationDTO;
 import com.usth.chat_app_api.message.Message;
 
@@ -24,5 +25,16 @@ public final class ConversationMapper {
             conversationDTOList.add(conversationDTO);
         });
         return conversationDTOList;
+    }
+
+    public static ConversationDTO conversationToConversationDTO(Conversation conversation, boolean isGroup){
+        Long conversationId = conversation.getId();
+        String conversationName = conversation.getName();
+
+        ConversationDTO conversationDTO = new ConversationDTO();
+        conversationDTO.setConversationId(conversationId);
+        conversationDTO.setConversationName(conversationName);
+
+        return conversationDTO;
     }
 }

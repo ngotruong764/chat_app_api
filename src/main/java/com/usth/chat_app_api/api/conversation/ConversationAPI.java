@@ -7,6 +7,9 @@ import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.conversation.Conversation;
 import com.usth.chat_app_api.conversation.ConversationDTO;
 import com.usth.chat_app_api.conversation.ConversationService;
+import com.usth.chat_app_api.conversation_participant.ConversationParticipant;
+import com.usth.chat_app_api.conversation_participant.ConversationParticipantService;
+import com.usth.chat_app_api.utils.Helper;
 import jakarta.persistence.EntityNotFoundException;
 import com.usth.chat_app_api.core.base.ResponseMessage;
 import com.usth.chat_app_api.mapper.ConversationMapper;
@@ -41,6 +44,8 @@ public class ConversationAPI {
     private AttachmentService attachmentService;
     @Autowired
     private IAwsS3Service awsS3Service;
+    @Autowired
+    private ConversationParticipantService conversationParticipantService;
 
     @GetMapping("/getConversation/user")
     public ResponseEntity<?> getConversations(
@@ -219,4 +224,137 @@ public class ConversationAPI {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    /*
+    * Method to find Conversation
+    *   if it does not have conversation --> create new one
+    *   else return the existed conversation
+    */
+
+    @PostMapping(value = "/fetchConversationOrCreate")
+    public ResponseEntity<ConversationResponse> fetchConversationOrCreate(@RequestBody ConversationRequest request) {
+        ConversationResponse response = new ConversationResponse();
+        UserInfo userInfo = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        boolean isGroup = false;
+        try{
+            Long userId = userInfo.getId();
+
+            // get params
+            Long conversationPartnerId = request.conversationPartnerId;
+
+
+            // find Conversation
+            Optional<ConversationParticipant> conversationParticipant = conversationParticipantService
+                    .findCommonConversationOfTwoPerson(userId, conversationPartnerId);
+
+            if(conversationParticipant.isPresent()){
+                ConversationDTO conversationDTO = convertConversationToConversationDTOWithLastMessage(conversationParticipant.get().getConversation(), userId);
+                response.setConversationDTO(conversationDTO);
+            } else {
+                // create new conversation if the conversation between 2 person does not exist
+                Conversation conversation = conversationService.createConversation(userId, List.of(conversationPartnerId));
+                ConversationDTO conversationDTO = convertConversationToConversationDTOWithLastMessage(conversation, userId);
+                response.setConversationDTO(conversationDTO);
+            }
+
+            response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
+            response.setResponseCode(HttpStatus.OK.value());
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e){
+            log.info(e.toString());
+            response.setMessage(e.getMessage());
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+
+    public ConversationDTO convertConversationToConversationDTOWithLastMessage(Conversation conversation, Long currentUserId){
+        final String bucketName = ApplicationConstant.AWS_BUCKET_NAME;
+
+        // find last message of a conversation
+        Optional<Message> lastMessageOptional = messageService.findFirstByConversationOrderByCreatedAtDesc(conversation);
+        Message lastMessage = lastMessageOptional.orElse(null);
+
+        String lastMessageContent = "Starting conversation";
+        lastMessageContent = lastMessage != null ? lastMessage.getContent() : lastMessageContent; // set last message
+
+        // find number of Attachment in a Message by MessageId
+        int attachmentCount = 0;
+        if(lastMessage != null){
+            attachmentCount = attachmentService.sumAttachmentByMessageId(lastMessage.getId()).orElse(0);
+
+        }
+        if(attachmentCount == 1){
+            lastMessageContent = "Send an attachment";
+        } else if (attachmentCount > 1){
+            lastMessageContent = "Send attachments";
+        }
+
+        // if conversation is not group --> we get image of another person
+        String avatarBase64Encoded = "";
+        if(!conversation.getGroup()){
+            Optional<UserInfo> anotherUser = conversation.getParticipants().stream()
+                    .map(ConversationParticipant::getUser)
+                    .filter(user -> !user.getId().equals(currentUserId)).findAny();
+            // if it has person
+            if(anotherUser.isPresent()){
+                // get user avatar path url
+                String userAvatarKey = anotherUser.get().getProfilePicture();
+                if(userAvatarKey != null && !userAvatarKey.isEmpty()){
+                    // download user avatar
+                    byte[] bytes = awsS3Service.downLoadObject(bucketName, userAvatarKey);
+                    // convert bytes to base64
+                    if(bytes.length > 0 && Helper.isValidImg(bytes)){
+                        anotherUser.get().setProfilePicture(null);
+                        // convert byte[] to base64
+                        avatarBase64Encoded = Base64.getEncoder().encodeToString(bytes);
+                    }
+                }
+            }
+        }
+
+        // find the user has the last message
+        Long lastMessageUserId = 0L;
+        String lastMessageUserName = "";
+        if(lastMessage != null){
+            UserInfo lastMessageUser = lastMessage.getCreatorId();
+            lastMessageUserId = lastMessageUser.getId();
+            lastMessageUserName = lastMessageUser.getUsername();
+        }
+
+        List<String> participantNames = conversation.getParticipants().stream()
+                .map(ConversationParticipant::getUser)
+                .filter(user -> !user.getId().equals(currentUserId))
+                .map(UserInfo::getUsername)
+                .collect(Collectors.toList());
+
+        // set conversation name
+        String conversationName;
+        // if conversation has a name
+        if (conversation.getName() != null && !conversation.getName().isEmpty()) {
+            conversationName = conversation.getName();
+        } else {
+            if (participantNames.size() > 2) {
+                // if conversation is a group and not has a name
+                conversationName = participantNames.get(0) + ", " + participantNames.get(1) + "...";
+            } else {
+                conversationName = String.join(", ", participantNames);
+            }
+        }
+
+        ConversationDTO dto = new ConversationDTO();
+        dto.setConversationId(conversation.getId());
+        dto.setConversationName(conversationName);
+        dto.setLastMessage(lastMessageContent);
+        dto.setLastMessageTime(lastMessage != null ? lastMessage.getCreatedAt() : null);
+        dto.setConversationCreatedAt(conversation.getCreatedAt());
+        dto.setUserLastMessageId(lastMessageUserId);
+        dto.setUserLastMessageName(lastMessageUserName);
+        if(!avatarBase64Encoded.isEmpty()){
+            dto.setConservationAvatar(avatarBase64Encoded);
+        }
+        return dto;
+    }
+
 }

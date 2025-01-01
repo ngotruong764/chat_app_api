@@ -17,5 +17,5 @@ public class ConversationResponse extends ResponseBase {
     private List<ConversationDTO> conversationDTOList;
     private List<MessageDTO> messageDTOList;
     private boolean isLastPage;
-
+    private ConversationDTO conversationDTO;
 }

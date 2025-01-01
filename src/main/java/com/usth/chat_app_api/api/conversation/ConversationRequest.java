@@ -4,4 +4,5 @@ public class ConversationRequest {
     public int pageSize;
     public int pageNumber;
     public Long conversationId;
+    public Long conversationPartnerId;
 }

@@ -63,7 +63,7 @@ public class UserInfo implements UserDetails {
     private String deviceToken;
 
     @Transient
-    private String profilePicturePath;
+    private String profilePictureBase64;
 
     public Long getId() {
         return id;
@@ -241,11 +241,11 @@ public class UserInfo implements UserDetails {
         this.deviceToken = deviceToken;
     }
 
-    public String getProfilePicturePath() {
-        return profilePicturePath;
+    public String getProfilePictureBase64() {
+        return profilePictureBase64;
     }
 
-    public void setProfilePicturePath(String profilePicturePath) {
-        this.profilePicturePath = profilePicturePath;
+    public void setProfilePictureBase64(String profilePictureBase64) {
+        this.profilePictureBase64 = profilePictureBase64;
     }
 }

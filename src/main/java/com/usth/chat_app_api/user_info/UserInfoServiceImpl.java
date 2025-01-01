@@ -1,11 +1,15 @@
 package com.usth.chat_app_api.user_info;
 
+import com.usth.chat_app_api.aws.IAwsS3Service;
+import com.usth.chat_app_api.constant.ApplicationConstant;
 import com.usth.chat_app_api.conversation.ConversationRepository;
+import com.usth.chat_app_api.utils.Helper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +20,8 @@ public class UserInfoServiceImpl implements IUserInfoService {
     private UserInfoRepository repo;
     @Autowired
     private ConversationRepository conversationRepository;
+    @Autowired
+    private IAwsS3Service awsS3Service;
 
     @Override
     public UserInfo findUserInforById(Long id) {
@@ -78,15 +84,24 @@ public class UserInfoServiceImpl implements IUserInfoService {
         List<UserInfo> strangerUsers = new ArrayList<>();
 
         for (UserInfo user : allUsers) {
-            if (user.getId().equals(currentUserId)) {
-                continue;
-            }
-            if (conversationIds.contains(user.getId())) {
-                sameConversationUsers.add(user);
-            } else if (repo.findUsersByConversations(conversationIds).contains(user)) {
-                chattedUsers.add(user);
-            } else {
-                strangerUsers.add(user);
+            if (!user.getId().equals(currentUserId)) {
+                if (conversationIds.contains(user.getId())) {
+                    sameConversationUsers.add(user);
+                } else if (repo.findUsersByConversations(conversationIds).contains(user)) {
+                    chattedUsers.add(user);
+                } else {
+                    strangerUsers.add(user);
+                }
+
+                // get user avatar
+                if(user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()){
+                    byte[] userAvatar = awsS3Service.downLoadObject(ApplicationConstant.AWS_BUCKET_NAME, user.getProfilePicture());
+                    if(userAvatar.length > 0 && Helper.isValidImg(userAvatar)){
+                        // convert byte[] to base64
+                        String avatarBase64Encoded = Base64.getEncoder().encodeToString(userAvatar);
+                        user.setProfilePictureBase64(avatarBase64Encoded);
+                    }
+                }
             }
         }
 

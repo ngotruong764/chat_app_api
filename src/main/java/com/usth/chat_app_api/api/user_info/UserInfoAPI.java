@@ -260,9 +260,9 @@ public class UserInfoAPI {
 
                 if(userInfo.getProfilePicture() != null && ApplicationConstant.AWS_BUCKET_NAME != null){
                     // create key name for obj
-                    String keyName = "img/"+ user.getId() + "/" + userInfo.getProfilePicturePath();
+                    String keyName = "img/"+ user.getId() + "/" + userInfo.getProfilePicture();
                     // upload img to aws bucket
-                    boolean isUpdated = awsS3Service.uploadObject(ApplicationConstant.AWS_BUCKET_NAME, keyName, 0L, "", userInfo.getProfilePicture());
+                    boolean isUpdated = awsS3Service.uploadObject(ApplicationConstant.AWS_BUCKET_NAME, keyName, 0L, "", userInfo.getProfilePictureBase64());
                     if(!isUpdated){
                         throw new Exception("Cannot update user profile picture");
                     }
@@ -291,7 +291,6 @@ public class UserInfoAPI {
             @RequestParam(defaultValue = "10") int size) {
         try {
             List<UserInfo> users = userInfoService.searchUsers(currentUserId, username, page, size);
-
             return ResponseEntity.ok(users);
         } catch (Exception e) {
             e.printStackTrace();

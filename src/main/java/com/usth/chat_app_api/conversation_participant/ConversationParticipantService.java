@@ -12,4 +12,6 @@ public interface ConversationParticipantService {
    List<ConversationParticipant> findConversationParticipantByConversationId(Long conversationId);
    void deleteByUser(UserInfo userInfo);
    void save(ConversationParticipant conversationParticipant);
+
+   Optional<ConversationParticipant> findCommonConversationOfTwoPerson(Long currentUserId, Long conversationPartnerId);
 }

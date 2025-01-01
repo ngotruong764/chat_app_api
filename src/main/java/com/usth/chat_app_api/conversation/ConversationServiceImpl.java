@@ -47,7 +47,7 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     public List<ConversationDTO> getConversationsWithLastMessage(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        String bucketName = ApplicationConstant.AWS_BUCKET_NAME;
+        final String bucketName = ApplicationConstant.AWS_BUCKET_NAME;
 
         // find all conversations by userId that current user participate in
         Page<Conversation> conversationPage = conversationRepository.findAllByUserId(userId, pageable);
@@ -58,7 +58,7 @@ public class ConversationServiceImpl implements ConversationService {
             Optional<Message> lastMessageOptional = messageService.findFirstByConversationOrderByCreatedAtDesc(conversation);
             Message lastMessage = lastMessageOptional.orElse(null);
 
-            String lastMessageContent = "No messages yet";
+            String lastMessageContent = "Starting conversation";
             lastMessageContent = lastMessage != null ? lastMessage.getContent() : lastMessageContent;
 
             // find number of Attachment in a Message by MessageId
@@ -79,11 +79,11 @@ public class ConversationServiceImpl implements ConversationService {
                 Optional<UserInfo> anotherUser = conversation.getParticipants().stream()
                         .map(ConversationParticipant::getUser)
                         .filter(user -> !user.getId().equals(userId)).findAny();
-                // if has person
+                // if it has person
                 if(anotherUser.isPresent()){
                     // get user avatar path url
                     String userAvatarKey = anotherUser.get().getProfilePicture();
-                    if(!userAvatarKey.isEmpty()){
+                    if(userAvatarKey != null && !userAvatarKey.isEmpty()){
                         // download user avatar
                         byte[] bytes = awsS3Service.downLoadObject(bucketName, userAvatarKey);
                         // convert bytes to base64
@@ -106,18 +106,26 @@ public class ConversationServiceImpl implements ConversationService {
             }
 
             // get all name of user that participate in this conversation
+//            List<String> participantNames = conversation.getParticipants().stream()
+//                    .map(ConversationParticipant::getUser)
+//                    .filter(user -> !user.getId().equals(userId))
+//                    .map(UserInfo::getFirstName)
+//                    .collect(Collectors.toList());
+
             List<String> participantNames = conversation.getParticipants().stream()
                     .map(ConversationParticipant::getUser)
                     .filter(user -> !user.getId().equals(userId))
-                    .map(UserInfo::getFirstName)
+                    .map(UserInfo::getUsername)
                     .collect(Collectors.toList());
 
             // set conversation name
             String conversationName;
+            // if conversation has a name
             if (conversation.getName() != null && !conversation.getName().isEmpty()) {
                 conversationName = conversation.getName();
             } else {
                 if (participantNames.size() > 2) {
+                    // if conversation is a group and not has a name
                     conversationName = participantNames.get(0) + ", " + participantNames.get(1) + "...";
                 } else {
                     conversationName = String.join(", ", participantNames);
@@ -129,6 +137,7 @@ public class ConversationServiceImpl implements ConversationService {
             dto.setConversationName(conversationName);
             dto.setLastMessage(lastMessageContent);
             dto.setLastMessageTime(lastMessage != null ? lastMessage.getCreatedAt() : null);
+            dto.setConversationCreatedAt(conversation.getCreatedAt());
             dto.setUserLastMessageId(lastMessageUserId);
             dto.setUserLastMessageName(lastMessageUserName);
             if(!avatarBase64Encoded.isEmpty()){
@@ -139,11 +148,14 @@ public class ConversationServiceImpl implements ConversationService {
         }
         conversationDTOs.sort((c1, c2) -> {
             if (c1.getLastMessageTime() == null && c2.getLastMessageTime() == null) {
-                return 0;
+//                return 0;
+                return c1.getConversationCreatedAt().compareTo(c2.getConversationCreatedAt());
             } else if (c1.getLastMessageTime() == null) {
-                return 1;
+//                return 1;
+                return c2.getLastMessageTime().compareTo(c1.getConversationCreatedAt());
             } else if (c2.getLastMessageTime() == null) {
-                return -1;
+//                return -1;
+               return c1.getLastMessageTime().compareTo(c2.getConversationCreatedAt());
             } else {
                 return c2.getLastMessageTime().compareTo(c1.getLastMessageTime());
             }
@@ -169,12 +181,13 @@ public class ConversationServiceImpl implements ConversationService {
         newConversation.setActive(true);
         newConversation.setName(null);
         if (participantIds.size() > 1){
-            newConversation.setGroup(true);
+            newConversation.setGroup(true); // 0
 
         } else {
-            newConversation.setGroup(false);
+            newConversation.setGroup(false); // 1
         }
 
+        // create a new conversation
         newConversation = conversationRepository.save(newConversation);
 
         List<ConversationParticipant> conversationParticipants = new ArrayList<>();

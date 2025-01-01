@@ -17,6 +17,7 @@ public class ConversationDTO {
     private String conversationName;
     private String lastMessage;
     private LocalDateTime lastMessageTime;
+    private LocalDateTime conversationCreatedAt;
     private Long userLastMessageId;
     private String userLastMessageName;
     private String conservationAvatar;
