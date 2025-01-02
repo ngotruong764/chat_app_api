@@ -160,12 +160,18 @@ public class UserInfoAPI {
             System.out.println(jwtToken);
             // get user info
             UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
             // if the authentication is true, we save the device_token
             if(user.getId() != null){
+                // set isOnline
+                user.setStatus(true);
+
+                // device token
                 if(!userInfo.getDeviceToken().equals(user.getDeviceToken())){
                     user.setDeviceToken(userInfo.getDeviceToken());
-                    userInfoService.saveUserInfo(user);
                 }
+                userInfoService.saveUserInfo(user);
+
                 // get user avatar
                 byte[] userAvatar = awsS3Service.downLoadObject(ApplicationConstant.AWS_BUCKET_NAME, user.getProfilePicture());
                 user.setProfilePicture(null);

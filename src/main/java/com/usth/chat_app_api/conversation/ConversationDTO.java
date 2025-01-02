@@ -21,6 +21,7 @@ public class ConversationDTO {
     private Long userLastMessageId;
     private String userLastMessageName;
     private String conservationAvatar;
+    private boolean isOnline;
 
     public ConversationDTO(Long conversationId, String conversationName, String lastMessage, LocalDateTime lastMessageTime) {
         this.conversationId = conversationId;

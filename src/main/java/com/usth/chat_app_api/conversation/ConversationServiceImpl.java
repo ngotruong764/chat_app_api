@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,6 +56,8 @@ public class ConversationServiceImpl implements ConversationService {
         List<ConversationDTO> conversationDTOs = new ArrayList<>();
 
         for (Conversation conversation : conversations) {
+            ConversationDTO dto = new ConversationDTO();
+
             Optional<Message> lastMessageOptional = messageService.findFirstByConversationOrderByCreatedAtDesc(conversation);
             Message lastMessage = lastMessageOptional.orElse(null);
 
@@ -115,6 +118,12 @@ public class ConversationServiceImpl implements ConversationService {
             List<String> participantNames = conversation.getParticipants().stream()
                     .map(ConversationParticipant::getUser)
                     .filter(user -> !user.getId().equals(userId))
+                    .peek(userInfo -> {
+                        // if at least 1 participant is online in a conversation -> set this conversation is online
+                        if(userInfo.getStatus() != null && userInfo.getStatus()){
+                            dto.setOnline(true);
+                        }
+                    })
                     .map(UserInfo::getUsername)
                     .collect(Collectors.toList());
 
@@ -132,7 +141,7 @@ public class ConversationServiceImpl implements ConversationService {
                 }
             }
 
-            ConversationDTO dto = new ConversationDTO();
+
             dto.setConversationId(conversation.getId());
             dto.setConversationName(conversationName);
             dto.setLastMessage(lastMessageContent);
