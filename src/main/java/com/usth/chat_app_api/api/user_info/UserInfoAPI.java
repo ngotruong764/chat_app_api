@@ -253,32 +253,39 @@ public class UserInfoAPI {
             if(userInfo.getId() == null){
                 // update user info
                 updatedUser = userInfoService.saveUserInfo(userInfo);
+                response.setUserInfo(updatedUser);
             } else{
                 // get current user
-                UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                user.setFirstName(userInfo.getFirstName());
-                user.setLastName(userInfo.getLastName());
-                user.setUsername(userInfo.getUsername());
-                user.setEmail(userInfo.getEmail());
-                user.setPhoneNumber(userInfo.getPhoneNumber());
-                user.setSex(userInfo.getSex());
-                user.setUpdateAt(new Timestamp(System.currentTimeMillis()));
+//                UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                UserInfo user = userInfoService.findUserInforById(userInfo.getId());
 
-                if(userInfo.getProfilePicture() != null && ApplicationConstant.AWS_BUCKET_NAME != null){
-                    // create key name for obj
-                    String keyName = "img/"+ user.getId() + "/" + userInfo.getProfilePicture();
-                    // upload img to aws bucket
-                    boolean isUpdated = awsS3Service.uploadObject(ApplicationConstant.AWS_BUCKET_NAME, keyName, 0L, "", userInfo.getProfilePictureBase64());
-                    if(!isUpdated){
-                        throw new Exception("Cannot update user profile picture");
+                if(user != null){
+                    user.setFirstName(userInfo.getFirstName());
+                    user.setLastName(userInfo.getLastName());
+                    user.setUsername(userInfo.getUsername());
+//                user.setEmail(userInfo.getEmail());
+                    user.setPhoneNumber(userInfo.getPhoneNumber());
+                    user.setSex(userInfo.getSex());
+                    user.setUpdateAt(new Timestamp(System.currentTimeMillis()));
+
+                    if(userInfo.getProfilePicture() != null &&
+                            !userInfo.getProfilePicture().isEmpty() &&
+                            ApplicationConstant.AWS_BUCKET_NAME != null){
+                        // create key name for obj
+                        String keyName = "img/"+ user.getId() + "/" + userInfo.getProfilePicture();
+                        // upload img to aws bucket
+                        boolean isUpdated = awsS3Service.uploadObject(ApplicationConstant.AWS_BUCKET_NAME, keyName, 0L, "", userInfo.getProfilePictureBase64());
+                        if(!isUpdated){
+                            throw new Exception("Cannot update user profile picture");
+                        }
+                        user.setProfilePicture(keyName);
                     }
-                    user.setProfilePicture(keyName);
-                }
 
-                updatedUser = userInfoService.saveUserInfo(user);
+                    updatedUser = userInfoService.saveUserInfo(user);
+                    response.setUserInfo(updatedUser);
+                }
             }
             //
-            response.setUserInfo(updatedUser);
             response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
@@ -302,6 +309,50 @@ public class UserInfoAPI {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred while searching for users: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/pushVerificationCode")
+    public ResponseEntity<?> pushVerificationCode(@RequestBody UserInfoRequest request){
+        UserInfoResponse response = new UserInfoResponse();
+        final String emailSubject = "Talkie - Forget Password";
+        try{
+            // get params
+            String userEmail = request.getUserEmail();
+
+            // find user by email
+            Optional<UserInfo> userInfo = userInfoService.findByEmail(userEmail);
+            if(userInfo.isEmpty()){
+                throw new Exception("User not found");
+            } else{
+                // get random token
+                final int MIN =ApplicationConstant.MIN;
+                final int MAX =ApplicationConstant.MAX;
+                String randomToken = String.valueOf((int)(Math.random()*(MAX-MIN+1)+MIN));
+
+                // Send email
+                SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+//                simpleMailMessage.setFrom();
+                simpleMailMessage.setTo(userInfo.get().getEmail());
+                simpleMailMessage.setSubject(emailSubject);
+                simpleMailMessage.setText("Your verification code is: " + randomToken);
+                javaMailSender.send(simpleMailMessage);
+
+                // save confirmation code
+                userInfo.get().setVerificationCode(randomToken);
+                userInfoService.saveUserInfo(userInfo.get());
+
+                response.setUserInfo(userInfo.get());
+            }
+
+            response.setMessage(ResponseMessage.getMessage(HttpStatus.OK.value()));
+            response.setResponseCode(HttpStatus.OK.value());
+            return ResponseEntity.status(HttpStatus.OK.value()).body(response);
+        } catch (Exception e){
+            log.info(e.getMessage());
+            response.setMessage(e.getMessage());
+            response.setResponseCode(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(response);
         }
     }
 
