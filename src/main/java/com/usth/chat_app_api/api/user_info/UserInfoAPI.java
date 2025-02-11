@@ -187,6 +187,7 @@ public class UserInfoAPI {
             response.setResponseCode(HttpStatus.OK.value());
             return ResponseEntity.status(HttpStatus.OK.value()).body(response);
         } catch (Exception e) {
+            e.printStackTrace();
             response.setResponseCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())

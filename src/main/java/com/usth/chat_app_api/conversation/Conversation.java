@@ -29,7 +29,7 @@ public class Conversation {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "conversation")
+    @OneToMany(mappedBy = "conversation", fetch = FetchType.EAGER)
     private List<ConversationParticipant> participants;
     @OneToMany(mappedBy = "conversation",cascade = CascadeType.REMOVE)
     private List<Message> messages;

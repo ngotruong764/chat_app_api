@@ -14,4 +14,9 @@ public final class ApplicationConstant {
     // Random token
     public static final int MIN = 100_000;
     public static final int MAX = 999_999;
+
+    // Video Call
+    public static final String VIDEO_CALL = "Video-Call";
+    public static final String AGREE_CALL = "Agree";
+    public static final String DECLINE_CALL = "Decline";
 }

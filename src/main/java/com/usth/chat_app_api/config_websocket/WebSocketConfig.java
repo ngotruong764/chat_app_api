@@ -17,10 +17,20 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
         webSocketHandlerRegistry.addHandler(myHandler(), "/api/v1/chat")
                 .setAllowedOrigins("*");
+
+        // video call
+        webSocketHandlerRegistry.addHandler(videoHandler(), "/api/v1/video")
+                .setAllowedOrigins("*");
     }
     @Bean(name = "myWebSocketHandler")
     public WebSocketHandler myHandler() {
         return new MyHandler();
+    }
+
+
+    @Bean(name = "VideoStreamSocketHandler")
+    public WebSocketHandler videoHandler() {
+        return new VideoStreamHandler();
     }
 
     @Bean

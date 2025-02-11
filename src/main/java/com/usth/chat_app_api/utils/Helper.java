@@ -16,4 +16,9 @@ public class Helper {
             return false;
         }
     }
+
+    public static <T> T parseWsQuery(String queryPrams){
+        String[] querySplit = queryPrams.split("=");
+        return (T) querySplit[querySplit.length - 1];
+    }
 }
