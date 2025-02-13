@@ -88,7 +88,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://10.0.2.2:8081", "ws://10.0.2.2:8081/talkie/api/v1/chat","ws://10.0.2.2:8081", "http://localhost:8081"));
+        configuration.setAllowedOrigins(List.of("http://10.0.2.2:8081", "ws://10.0.2.2:8081/talkie/api/v1/chat","ws://10.0.2.2:8081", "http://localhost:8081", "*"));
 //        huy mới theem dòng dưới ể test
 //        configuration.setAllowedOrigins(List.of("http://localhost:8080"));
         configuration.setAllowedMethods(List.of("GET","POST"));

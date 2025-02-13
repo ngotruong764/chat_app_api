@@ -7,4 +7,9 @@ import org.springframework.stereotype.Service;
 public class CallTypeServiceImpl implements ICallTypeService{
     @Autowired
     CallTypeRepository repo;
+
+    @Override
+    public CallType findByCode(String callType) {
+        return repo.findByCode(callType);
+    }
 }

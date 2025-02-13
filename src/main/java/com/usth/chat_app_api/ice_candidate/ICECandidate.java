@@ -15,7 +15,7 @@ public class ICECandidate {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "ice_content")
+    @Column(name = "ice_content", length = 65_535)
     private String iceContent;
 
     @JoinColumn(name = "voip_call_id", referencedColumnName = "id")
